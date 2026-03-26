@@ -1,8 +1,8 @@
 ---
 title: Incident Env
-emoji: 👁
-colorFrom: indigo
-colorTo: pink
+emoji: 😻
+colorFrom: pink
+colorTo: red
 sdk: docker
 pinned: false
 ---

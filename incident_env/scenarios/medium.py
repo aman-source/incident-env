@@ -493,6 +493,7 @@ class MediumDBPoolScenario(BaseScenario):
     # -- Timing -------------------------------------------------------------
     time_budget: int = 240
     max_steps: int = 25
+    min_investigations: int = 3
 
     def __init__(self) -> None:
         # -- Services -------------------------------------------------------

@@ -243,8 +243,19 @@ class IncidentEnvironment(Environment["IncidentAction", "IncidentObservation", "
                 reward=0.0,
             )
 
+        # Enforce minimum investigation depth before accepting diagnosis
+        min_inv = getattr(scenario, "min_investigations", 1)
+        if state.total_investigations < min_inv:
+            return self._make_observation(
+                message=f"Insufficient investigation. You've only performed {state.total_investigations} investigation(s). "
+                        f"Gather more data before diagnosing (minimum {min_inv} investigations required).",
+                reward=-0.03,
+                cascade_changes=cascade_changes,
+            )
+
         state.agent_diagnosis = diagnosis
         state.diagnosed = True
+        state.agent_actions_taken.append(f"diagnose {action.target} {diagnosis}")
         diagnosis_score = scenario.check_diagnosis(diagnosis)
 
         if diagnosis_score >= 1.0:

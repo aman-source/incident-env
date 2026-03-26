@@ -150,6 +150,9 @@ class EasyOOMScenario(BaseScenario):
         self.time_budget = 300
         self.max_steps = 15
 
+        # -- Minimum investigation depth before diagnosis is accepted ----------
+        self.min_investigations = 2
+
     # -------------------------------------------------------------------
     # Investigation result data
     # -------------------------------------------------------------------

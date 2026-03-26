@@ -109,6 +109,9 @@ class BaseScenario(ABC):
     time_budget: int          # total simulated seconds for this incident
     max_steps: int            # maximum agent steps before episode ends
 
+    # Minimum investigations required before diagnosis is accepted
+    min_investigations: int = 1
+
     # Simulated wall-clock cost of each action type (seconds)
     time_costs: Dict[str, int] = {
         "investigate": 15,

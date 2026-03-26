@@ -223,16 +223,19 @@ class BaseScenario(ABC):
         keywords.
 
         Returns:
-            1.0  if two or more keywords matched  (correct diagnosis)
-            0.5  if exactly one keyword matched    (partially correct)
-            0.0  if no keywords matched            (incorrect)
+            1.0  if 3+ keywords matched   (precise diagnosis)
+            0.7  if 2 keywords matched     (correct but vague)
+            0.4  if 1 keyword matched      (partially correct)
+            0.0  if no keywords matched    (incorrect)
         """
         diagnosis_lower = agent_diagnosis.lower()
         matched = sum(1 for kw in self.root_cause_keywords if kw in diagnosis_lower)
-        if matched >= 2:
+        if matched >= 3:
             return 1.0
+        if matched >= 2:
+            return 0.7
         if matched == 1:
-            return 0.5
+            return 0.4
         return 0.0
 
     def get_available_actions(self) -> List[str]:

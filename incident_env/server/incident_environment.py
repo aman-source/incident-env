@@ -261,13 +261,16 @@ class IncidentEnvironment(Environment["IncidentAction", "IncidentObservation", "
         diagnosis_score = scenario.check_diagnosis(diagnosis)
 
         if diagnosis_score >= 1.0:
-            msg = "✅ Diagnosis recorded. Root cause identification looks accurate."
-            reward = 0.15
-        elif diagnosis_score >= 0.5:
-            msg = "⚠️ Diagnosis recorded. Partially correct — some key aspects identified."
+            msg = "Diagnosis recorded. Root cause analysis submitted."
+            reward = 0.10
+        elif diagnosis_score >= 0.7:
+            msg = "Diagnosis recorded."
             reward = 0.05
+        elif diagnosis_score >= 0.4:
+            msg = "Diagnosis recorded. Analysis may be incomplete."
+            reward = 0.0
         else:
-            msg = "❌ Diagnosis recorded. Root cause identification appears incorrect."
+            msg = "Diagnosis recorded."
             reward = -0.05
 
         return self._make_observation(

@@ -2,10 +2,10 @@
 Deterministic grading logic for the Incident Response Environment.
 
 Scores agent performance on a 0.0-1.0 scale across five dimensions:
-  - Diagnosis accuracy (35%)
-  - Resolution quality (30%)
-  - Investigation efficiency (15%)
-  - Time factor (10%)
+  - Diagnosis accuracy (30%)
+  - Resolution quality (25%)
+  - Investigation efficiency (20%)
+  - Time factor (15%)
   - Collateral avoidance (10%)
 """
 
@@ -24,32 +24,33 @@ def grade_episode(state: "IncidentState", scenario: "BaseScenario") -> dict:
     Returns a dict with ``score`` (float 0.0-1.0) and ``breakdown``.
     """
 
-    # 1. Diagnosis accuracy (0.35)
+    # 1. Diagnosis accuracy (0.30)
     if state.agent_diagnosis:
         diagnosis_score = scenario.check_diagnosis(state.agent_diagnosis)
     else:
         diagnosis_score = 0.0
 
-    # 2. Resolution quality (0.30)
+    # 2. Resolution quality (0.25)
     resolution_score = scenario.score_resolution(state.agent_actions_taken)
 
-    # 3. Investigation efficiency (0.15)
+    # 3. Investigation efficiency (0.20) — penalise wasted investigations harder
     if state.total_investigations > 0:
         efficiency_score = state.correct_investigations / state.total_investigations
     else:
         efficiency_score = 0.0
 
-    # 4. Time factor (0.10) — reward for speed
-    time_score = max(0.0, 1.0 - (state.time_elapsed / max(state.time_budget, 1)))
+    # 4. Time factor (0.15) — harsher time pressure
+    time_ratio = state.time_elapsed / max(state.time_budget, 1)
+    time_score = max(0.0, 1.0 - (time_ratio * 1.2))  # goes to 0 at 83% budget used
 
-    # 5. Collateral factor (0.10) — penalise harmful actions
-    collateral_score = max(0.0, 1.0 - state.collateral_damage)
+    # 5. Collateral factor (0.10) — penalise harmful/wasteful actions
+    collateral_score = max(0.0, 1.0 - state.collateral_damage * 1.5)
 
     final = (
-        diagnosis_score * 0.35
-        + resolution_score * 0.30
-        + efficiency_score * 0.15
-        + time_score * 0.10
+        diagnosis_score * 0.30
+        + resolution_score * 0.25
+        + efficiency_score * 0.20
+        + time_score * 0.15
         + collateral_score * 0.10
     )
     final = round(min(1.0, max(0.0, final)), 4)

@@ -103,13 +103,15 @@ class EasyOOMScenario(BaseScenario):
             "Memory leak in api-gateway v2.4.1 deployment - request body "
             "caching causes unbounded memory growth"
         )
+        # Need 3+ for 1.0 — "memory" alone is too vague
         self.root_cause_keywords: Set[str] = {
             "oom",
             "memory leak",
             "api-gateway",
             "out of memory",
-            "memory",
             "v2.4.1",
+            "request body cache",
+            "unbounded",
         }
         self.optimal_actions: List[str] = [
             "rollback api-gateway",

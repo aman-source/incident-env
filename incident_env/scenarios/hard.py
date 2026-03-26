@@ -1234,8 +1234,9 @@ class HardCanaryScenario(BaseScenario):
         "and config changes across multiple investigation steps."
     )
 
-    time_budget = 120
-    max_steps = 20
+    time_budget = 100
+    max_steps = 15
+    min_investigations = 4
 
     time_costs = {
         "investigate": 12,
@@ -1250,17 +1251,15 @@ class HardCanaryScenario(BaseScenario):
         "provider-B's non-standard nested_permissions claim structure"
     )
 
+    # Need 3+ for 1.0 score — forces very specific diagnosis
     root_cause_keywords: Set[str] = {
         "canary",
-        "auth-service",
         "provider-b",
-        "oauth",
-        "canary deployment",
-        "v5.1.0",
         "claims",
-        "token",
+        "v5.1.0",
         "nested_permissions",
         "claims-validator",
+        "realm_access",
     }
 
     optimal_actions: List[str] = [
@@ -1957,19 +1956,13 @@ class HardCanaryScenario(BaseScenario):
 
     @staticmethod
     def _build_relevant_investigations() -> Set[Tuple[str, str]]:
+        # Only the direct root-cause investigations count as relevant.
+        # Investigating order-service or api-gateway gives useful context
+        # but doesn't count toward efficiency — they're symptoms.
         return {
             ("auth-service", "logs"),
             ("auth-service", "metrics"),
             ("auth-service", "deployments"),
             ("auth-service", "config"),
-            ("auth-service", "dependencies"),
-            ("order-service", "logs"),
-            ("order-service", "metrics"),
-            ("order-service", "dependencies"),
-            ("api-gateway", "logs"),
-            ("api-gateway", "metrics"),
-            ("api-gateway", "dependencies"),
-            ("system", "overview"),
             ("system", "recent_changes"),
-            ("system", "dependency_graph"),
         }

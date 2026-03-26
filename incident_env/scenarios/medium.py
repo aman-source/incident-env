@@ -913,9 +913,9 @@ class MediumDBPoolScenario(BaseScenario):
     )
 
     # -- Timing -------------------------------------------------------------
-    time_budget: int = 240
-    max_steps: int = 25
-    min_investigations: int = 3
+    time_budget: int = 200
+    max_steps: int = 20
+    min_investigations: int = 4
 
     def __init__(self) -> None:
         # -- Services -------------------------------------------------------
@@ -1256,13 +1256,15 @@ class MediumDBPoolScenario(BaseScenario):
             "user-service v3.2.0 connection leak in bulk sync job exhausting "
             "shared database connection pool"
         )
+        # Need 3+ matches for 1.0 — forces specific diagnosis
         self.root_cause_keywords: Set[str] = {
             "user-service",
             "connection leak",
             "connection pool",
-            "db pool",
             "pool exhaustion",
             "bulk sync",
+            "v3.2.0",
+            "batch processing",
         }
         self.optimal_actions: List[str] = [
             "restart user-service",
@@ -1270,19 +1272,15 @@ class MediumDBPoolScenario(BaseScenario):
         ]
 
         # -- Relevant investigations ----------------------------------------
+        # Only user-service investigations are truly relevant (root cause).
+        # database/payment-service are symptoms — investigating them is not
+        # wasted, but doesn't count toward investigation_efficiency.
         self.relevant_investigations: Set[Tuple[str, str]] = {
             ("user-service", "logs"),
             ("user-service", "deployments"),
             ("user-service", "metrics"),
-            ("user-service", "dependencies"),
-            ("user-service", "config"),
             ("database", "logs"),
-            ("database", "metrics"),
-            ("database", "dependencies"),
-            ("payment-service", "logs"),
-            ("system", "overview"),
             ("system", "recent_changes"),
-            ("system", "dependency_graph"),
         }
 
         # -- Cascading effects ----------------------------------------------

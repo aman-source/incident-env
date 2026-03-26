@@ -1,0 +1,8 @@
+name: incident_env
+version: "1.0.0"
+description: >
+  Incident Response Triage Environment — an AI agent acts as an on-call SRE,
+  diagnosing system failures from alerts, logs, and metrics under time pressure.
+  Features cascading failures, red herrings, and multi-dimensional reward design.
+  3 tasks spanning easy (single service OOM), medium (cascading DB pool exhaustion),
+  and hard (intermittent canary deployment with correlated OAuth provider failures).

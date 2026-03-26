@@ -17,9 +17,6 @@ from openenv.core.env_server.types import State
 from incident_env.graders.grader import grade_episode
 from incident_env.models import IncidentAction, IncidentObservation, IncidentState
 from incident_env.scenarios.base import BaseScenario
-from incident_env.scenarios.easy import EasyOOMScenario
-from incident_env.scenarios.medium import MediumDBPoolScenario
-from incident_env.scenarios.hard import HardCanaryScenario
 
 
 # Simulated time cost per action type (seconds)
@@ -49,6 +46,11 @@ class IncidentEnvironment(Environment["IncidentAction", "IncidentObservation", "
 
     def __init__(self) -> None:
         super().__init__()
+        # Lazy imports — scenarios are large files, only load when needed
+        from incident_env.scenarios.easy import EasyOOMScenario
+        from incident_env.scenarios.medium import MediumDBPoolScenario
+        from incident_env.scenarios.hard import HardCanaryScenario
+
         self._scenario_registry = {
             "easy_oom": EasyOOMScenario,
             "medium_db_pool": MediumDBPoolScenario,

@@ -11,7 +11,7 @@ Usage:
 from __future__ import annotations
 
 try:
-    from openenv.core.env_server.http_server import create_app
+    from openenv.core.env_server.http_server import create_fastapi_app
 except Exception as e:
     raise ImportError(
         "openenv-core is required. Install with: pip install openenv-core"
@@ -25,12 +25,11 @@ except ModuleNotFoundError:
     from server.incident_environment import IncidentEnvironment
 
 
-# Create the app — create_app expects a factory callable (class or lambda)
-app = create_app(
+# create_fastapi_app — lighter than create_app (no Gradio UI), faster startup
+app = create_fastapi_app(
     IncidentEnvironment,
     IncidentAction,
     IncidentObservation,
-    env_name="incident_env",
     max_concurrent_envs=5,
 )
 

@@ -36,6 +36,31 @@ app = create_app(
 
 
 # ---------------------------------------------------------------------------
+# Root endpoint — required for HuggingFace Spaces to show "Running"
+# ---------------------------------------------------------------------------
+
+@app.get("/")
+async def root():
+    """Root endpoint with environment info."""
+    return {
+        "name": "IncidentEnv",
+        "description": "Incident Response Triage Environment for OpenEnv",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/health",
+            "tasks": "/tasks",
+            "reset": "POST /reset",
+            "step": "POST /step",
+            "state": "/state",
+            "grader": "POST /grader",
+            "baseline": "POST /baseline",
+            "docs": "/docs",
+            "websocket": "/ws",
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
 # Custom hackathon endpoints
 # ---------------------------------------------------------------------------
 

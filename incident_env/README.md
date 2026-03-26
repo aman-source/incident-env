@@ -1,179 +1,118 @@
-# IncidentEnv --- Incident Response Triage Environment
+---
+title: IncidentEnv
+emoji: 🚨
+colorFrom: red
+colorTo: yellow
+sdk: docker
+pinned: false
+app_port: 7860
+---
 
-> An OpenEnv-compatible environment for training and evaluating AI agents on real-world production incident response. Built for the **Scaler x Meta x Hugging Face OpenEnv Hackathon**.
+# IncidentEnv -- Incident Response Triage Environment
+
+An **OpenEnv-compatible environment** that simulates production incident response for training and evaluating AI agents. The agent takes on the role of an on-call SRE engineer: receiving alerts, investigating logs and metrics across a microservices architecture, tracing failures through dependency graphs, diagnosing root causes, and executing corrective actions -- all under realistic time pressure with cascading system degradation. IncidentEnv features a novel multi-dimensional reward function incorporating time-decay scoring, cascading failure penalties, investigation efficiency tracking, and blast-radius-aware collateral damage scoring, producing evaluation signals that sharply distinguish sophisticated reasoning from brute-force exploration.
+
+Built for the **Scaler x Meta x Hugging Face OpenEnv Hackathon** (India edition, 70K+ participants).
 
 ---
 
-## Overview
+## Why Incident Response?
 
-**IncidentEnv** simulates the high-stakes world of on-call Site Reliability Engineering. An AI agent receives a production alert, investigates system logs and metrics, traces failures through a microservices dependency graph, diagnoses the root cause, and takes corrective action --- all under realistic time pressure with cascading consequences.
+Incident response is one of the most cognitively demanding tasks in software engineering -- and one that every engineer at Meta, Hugging Face, and every major tech company performs during on-call rotations. Despite its centrality to production reliability, **no incident response environment exists in the OpenEnv ecosystem**. IncidentEnv fills this gap.
 
-What sets IncidentEnv apart is its **multi-dimensional reward design**. Agents are scored not just on whether they fix the problem, but on *how* they fix it: Were their investigations efficient? Did they identify the correct root cause before acting? Did they avoid collateral damage? Did they resolve the incident before dependent services cascaded into failure? This creates a rich evaluation signal that separates sophisticated reasoning from brute-force trial and error.
+The skills this environment evaluates are precisely those that define expert SRE work:
 
-The environment ships with three tasks spanning easy to hard difficulty, deterministic graders, a baseline inference script, and full Docker/Hugging Face Spaces support.
+- **Log analysis** -- Extracting signal from verbose, noisy production logs with realistic timestamps, stack traces, and interleaved entries
+- **Dependency tracing** -- Following failure chains through interconnected services where the symptom is multiple hops from the root cause
+- **Temporal correlation** -- Linking events across time (deployments, config changes, error onset windows) to identify causality
+- **Red herring dismissal** -- Ignoring misleading signals (elevated CPU from queuing, unrelated warning logs, cosmetic config changes) that do not relate to the root cause
+- **Decisive action under uncertainty** -- Choosing the correct corrective action when multiple options exist, each with different blast radius
+- **Escalation judgment** -- Knowing when to page a human team and at what priority level
 
----
-
-## Motivation
-
-Every engineer at Meta, Hugging Face, and every major tech company participates in on-call rotations. Incident response is one of the most cognitively demanding tasks in software engineering: it requires reading noisy logs under pressure, tracing causality through complex distributed systems, distinguishing root causes from symptoms, and making high-stakes decisions with incomplete information.
-
-Despite its importance, **no incident response environment exists in the OpenEnv ecosystem**. IncidentEnv fills this gap.
-
-The skills this environment tests are precisely the skills that define expert SRE work:
-
-- **Log analysis**: Extracting signal from verbose, noisy production logs
-- **Dependency tracing**: Following failure chains through interconnected services
-- **Temporal correlation**: Linking events across time (deployments, config changes, error onset)
-- **Red herring dismissal**: Ignoring misleading signals that don't relate to the root cause
-- **Decisive action under uncertainty**: Choosing the right corrective action when multiple options exist
-- **Escalation judgment**: Knowing when to page a human team and at what priority
-
-These are capabilities that frontier AI models claim to have but rarely demonstrate under realistic conditions. IncidentEnv provides the benchmark.
-
----
-
-## Architecture
-
-### Simulated Infrastructure
-
-IncidentEnv models a realistic microservices architecture consisting of 6--8 services:
-
-```
-                    +----------------+
-                    |  api-gateway   |
-                    +-------+--------+
-                            |
-              +-------------+-------------+
-              |                           |
-      +-------v--------+         +-------v--------+
-      |  auth-service   |         |  user-service   |
-      +-------+--------+         +-------+--------+
-              |                           |
-      +-------v--------+         +-------v--------+
-      |    database     |         |     cache       |
-      +----------------+         +----------------+
-              |
-      +-------v-----------------+
-      | payment-service         |
-      +-------+-----------------+
-              |
-      +-------v-----------------+
-      | notification-service    |
-      +-------------------------+
-```
-
-Each service maintains realistic state:
-
-| Property | Description |
-|----------|-------------|
-| `health` | `healthy`, `degraded`, or `down` |
-| `latency_ms` | Current p99 latency in milliseconds |
-| `error_rate_5xx` | Fraction of requests returning 5xx errors |
-| `cpu_utilization_pct` | CPU usage percentage |
-| `memory_utilization_pct` | Memory usage percentage |
-| `recent_logs` | Timestamped log entries (INFO, WARN, ERROR) |
-| `recent_deployments` | Deployment history with version, timestamp, author |
-| `config` | Current service configuration |
-| `dependencies` | List of upstream/downstream services |
-
-### Dynamic System Model
-
-The system is not static. If the agent takes too long to resolve the incident:
-
-1. **Cascading failures propagate** through the dependency graph. A database issue will eventually degrade auth-service, then api-gateway.
-2. **Error rates increase** on affected services over time.
-3. **New symptoms appear** that can mislead the agent into chasing consequences rather than causes.
-4. **Maximum achievable score decreases** with each cascade event, rewarding swift resolution.
+The reward design is genuinely novel. Unlike binary pass/fail graders, IncidentEnv scores agents across five orthogonal dimensions with time-pressure decay, cascading failure state changes, and minimum-investigation gates that prevent lucky guessing. This creates evaluation signals that frontier models find genuinely challenging -- even 70B parameter models score only 0.72 on the hard task.
 
 ---
 
 ## Tasks
 
-### Task 1: Easy --- Single Service OOM Crash
-
-| Property | Value |
-|----------|-------|
-| **Task ID** | `easy_oom` |
-| **Difficulty** | Easy |
-| **Max Steps** | 15 |
-| **Time Budget** | 15 simulated minutes |
-| **Expected Baseline** | 0.7 -- 0.9 |
-
-**Scenario**: The `user-service` is returning HTTP 503 errors to clients. The monitoring dashboard shows the service is in a `degraded` state. Logs clearly contain `java.lang.OutOfMemoryError: Java heap space` entries. Memory metrics confirm utilization at 98%. A deployment 2 hours ago bumped the service to v1.4.2, which introduced a memory-intensive caching layer without adjusting heap limits.
-
-**Optimal investigation path**:
-1. Investigate `user-service` logs --> observe OOM errors
-2. Investigate `user-service` metrics --> confirm memory at 98%
-3. Investigate `user-service` deployments --> see recent v1.4.2 deploy
-4. Diagnose: "OOM due to memory-intensive deployment v1.4.2"
-5. Act: `restart` or `scale_up` user-service
-
-**What makes it easy**: Single causal chain. The root cause is one hop away from the alert. Logs explicitly state the error. No red herrings. Most capable LLMs should handle this reliably.
+| Task | ID | Difficulty | Services | Max Steps | Time Budget | What It Tests |
+|------|----|------------|----------|-----------|-------------|---------------|
+| Single Service OOM Crash | `easy_oom` | Easy | 5 | 15 | 100s | Log reading, single-hop diagnosis, basic corrective action |
+| Cascading DB Connection Pool Exhaustion | `medium_db_pool` | Medium | 9 | 15 | 100s | Multi-hop dependency tracing, red herring dismissal, connection pool reasoning |
+| Intermittent Canary Deployment + OAuth Provider Failures | `hard_canary` | Hard | 15 | 15 | 100s | Temporal correlation, intermittent error analysis, canary identification, multi-layer red herrings |
 
 ---
 
-### Task 2: Medium --- Cascading Database Connection Pool Exhaustion
+### Task 1: Easy -- Single Service OOM Crash
 
-| Property | Value |
-|----------|-------|
-| **Task ID** | `medium_db_pool` |
-| **Difficulty** | Medium |
-| **Max Steps** | 25 |
-| **Time Budget** | 25 simulated minutes |
-| **Expected Baseline** | 0.4 -- 0.6 |
+**Scenario**: The `user-service` is returning HTTP 503 errors. Logs clearly show `java.lang.OutOfMemoryError: Java heap space` entries with stack traces pointing to `InMemoryStore.put()`. Memory metrics confirm utilization at 98%. A deployment of v2.4.1 two hours ago introduced a memory-intensive in-memory caching layer without adjusting heap limits.
 
-**Scenario**: The `api-gateway` is returning slow responses (p99 latency spiked from 120ms to 4500ms). But the root cause is two hops away: the `database` service has a long-running analytical query from a batch job that is holding row-level locks, causing connection pool exhaustion. This causes `auth-service` (which depends on the database) to time out on authentication queries, which in turn causes `api-gateway` to queue up requests waiting for auth.
+**What the agent must do**:
+1. Investigate `user-service` logs -- observe OOM errors with heap exhaustion
+2. Investigate `user-service` metrics -- confirm memory at 98%, correlate with deployment
+3. Investigate `user-service` deployments -- identify v2.4.1 as the triggering change
+4. Diagnose: "OOM caused by memory-intensive deployment v2.4.1"
+5. Act: `rollback` user-service to previous version
 
-**Red herrings**:
-- `api-gateway` CPU is slightly elevated (consequence of queuing, not a cause)
-- `cache` service shows a minor increase in miss rate (unrelated scheduled eviction)
-
-**Optimal investigation path**:
-1. Investigate `api-gateway` metrics --> notice high latency
-2. Investigate `api-gateway` dependencies --> identify auth-service
-3. Investigate `auth-service` logs --> see database connection timeout errors
-4. Investigate `database` logs --> find lock contention from batch query
-5. Act: `drain_connections` on database or `kill_query` via act
-6. Diagnose: "Database lock contention from batch job causing cascading latency"
-
-**What makes it medium**: The agent must trace through the dependency graph. The symptom (api-gateway slowness) is not the cause. The actual root cause requires inspecting three services. Red herring metrics on api-gateway may distract naive agents.
+**What makes it easy**: Single causal chain with one service. The root cause is one hop from the alert. Logs explicitly state the error. No red herrings. This task validates that the agent can read logs, correlate with deployment history, and take basic corrective action.
 
 ---
 
-### Task 3: Hard --- Intermittent Canary Deployment with Race Condition
+### Task 2: Medium -- Cascading DB Connection Pool Exhaustion
 
-| Property | Value |
-|----------|-------|
-| **Task ID** | `hard_canary` |
-| **Difficulty** | Hard |
-| **Max Steps** | 35 |
-| **Time Budget** | 35 simulated minutes |
-| **Expected Baseline** | 0.2 -- 0.4 |
-
-**Scenario**: Intermittent HTTP 5xx errors are appearing across multiple services. There is no single clear pattern --- errors come and go. The root cause: a canary deployment of `payment-service` v2.3.1 introduced a race condition in its connection pooling logic that only manifests under specific load patterns. When payment-service fails intermittently, it causes partial failures in `notification-service` (which calls payment-service for billing verification) and transient errors in `api-gateway`.
+**Scenario**: The `payment-service` is timing out on transaction processing. But the root cause is two hops away: the `user-service` has a connection pool leak due to unclosed database connections in its user lookup path. This exhausts the shared `database` connection pool, which then causes `payment-service` (which also depends on the database) to fail on transaction commits.
 
 **Red herrings**:
-- `cache` service shows elevated miss rate (consequence of partial request failures causing cache invalidation)
-- `notification-service` has unrelated WARNING-level logs about a deprecated API version (cosmetic, not causal)
-- A recent DNS TTL change appears in infrastructure logs (irrelevant, completed successfully)
+- Yesterday's `payment-service` deployment (v3.1.0) -- looks suspicious but is unrelated
+- A DNS resolution blip in infrastructure logs -- resolved automatically, no impact
+- `api-gateway` latency elevation -- consequence of downstream failures, not a cause
 
-**Optimal investigation path**:
-1. Investigate multiple services to observe the intermittent pattern
-2. Investigate `system` recent_changes --> see payment-service canary deployment
-3. Investigate `payment-service` deployments --> identify v2.3.1 canary
-4. Correlate deployment timestamp with error onset across services
-5. Investigate `payment-service` logs --> find race condition stack traces (intermittent)
-6. Act: `kill_canary` or `rollback` payment-service to v2.3.0
-7. Diagnose: "Race condition in payment-service v2.3.1 canary deployment"
+**What the agent must do**: Trace from payment-service symptoms through database connection exhaustion to user-service as the leak source. Requires minimum 4 investigations to build the causal chain. The agent must resist the temptation to blame payment-service's recent deployment and instead follow the connection pool evidence to user-service.
 
-**What makes it hard**: Errors are intermittent --- not every log check reveals them. Multiple red herrings demand careful reasoning. The agent must perform temporal correlation (linking deployment time to error onset). Multiple services show symptoms, but only one is the cause. This task genuinely challenges frontier models.
+**What makes it medium**: Root cause is 2 hops from the presenting symptom. Multiple services show degradation. Two distinct red herrings compete for the agent's attention. Requires understanding connection pool mechanics and dependency ordering.
+
+---
+
+### Task 3: Hard -- Intermittent Canary Deployment with OAuth Provider Failures
+
+**Scenario**: Intermittent HTTP 5xx errors (~10% of requests) appear across multiple services with no clear pattern. The root cause: a canary deployment of `auth-service` v2.1.0-canary introduced a claims-validator bug that fails only when processing tokens from OAuth provider-B (provider-A tokens work fine). Since only the canary pod is affected and only provider-B tokens trigger the bug, errors are sparse and intermittent.
+
+**Red herrings** (4 layers):
+- `recommendation-service` CPU spike -- legitimate but unrelated batch processing
+- `config-service` recent updates -- routine config rotation, no functional impact
+- `database` slow query log -- occasional long-running analytics query, pre-existing
+- Certificate renewal activity in infrastructure -- completed successfully, no errors
+
+**What makes it hard**:
+- **Intermittent signals**: First log check shows mostly clean output -- only 2 buried error lines among 30+ successful requests. Errors appear only ~30% of the time on any given check.
+- **15 services**: Large search space with many potential suspects
+- **Canary specificity**: Must identify that only the canary pod (not the full deployment) is the issue
+- **Provider correlation**: Must notice the provider-B pattern in the sparse error messages
+- **Time pressure**: 100-second budget with max 15 steps means every investigation must count
+
+---
+
+## Benchmark Results
+
+Scores from running the baseline agent across all three tasks:
+
+| Model | Easy | Medium | Hard | Average |
+|-------|------|--------|------|---------|
+| **Llama 3.3 70B Instruct** | 0.95 | 0.76 | 0.72 | **0.81** |
+| **Llama 4 Scout 17B** | 0.96 | 0.70 | 0.20 | **0.62** |
+| **Llama 3.1 8B Instruct** | 0.86 | 0.70 | 0.53 | **0.70** |
+
+**Key observations**:
+- The easy task is reliably solvable by all model sizes, validating it as a reasonable baseline.
+- The medium task shows consistent performance around 0.70-0.76, with differentiation coming from investigation efficiency and time factor.
+- The hard task **genuinely challenges all models**. Even Llama 3.3 70B scores only 0.72, while Scout 17B drops to 0.20 -- struggling with temporal correlation and intermittent error patterns. Notably, 8B outperforms Scout 17B on the hard task (0.53 vs 0.20), suggesting that the task tests reasoning depth rather than raw parameter count.
+- The spread between easy and hard scores (0.95 to 0.72 for 70B, 0.96 to 0.20 for Scout) demonstrates meaningful difficulty progression.
 
 ---
 
 ## Action Space
 
-All actions are submitted as JSON objects with the following structure:
+All actions are submitted as JSON objects with four fields:
 
 ```json
 {
@@ -184,9 +123,7 @@ All actions are submitted as JSON objects with the following structure:
 }
 ```
 
-### `investigate`
-
-Query system information. This is the primary way agents gather evidence.
+### `investigate` -- Query system information
 
 | Command | Description | Example |
 |---------|-------------|---------|
@@ -198,30 +135,26 @@ Query system information. This is the primary way agents gather evidence.
 | `overview` | System-wide health summary | `{"action_type": "investigate", "target": "system", "command": "overview"}` |
 | `recent_changes` | Recent changes across all services | `{"action_type": "investigate", "target": "system", "command": "recent_changes"}` |
 
-### `diagnose`
-
-Submit a root cause diagnosis. The agent should do this once they have enough evidence.
+### `diagnose` -- Submit root cause diagnosis
 
 ```json
 {
   "action_type": "diagnose",
-  "target": "payment-service",
-  "command": "Race condition in v2.3.1 canary causing intermittent 5xx errors under load"
+  "target": "auth-service",
+  "command": "Claims-validator bug in v2.1.0-canary causing provider-B OAuth token failures"
 }
 ```
 
-The `target` identifies which service the agent believes is the root cause. The `command` field contains the free-text diagnosis description.
+The `target` identifies which service the agent believes is the root cause. The `command` field contains the free-text diagnosis. The grader uses keyword matching against the expected root cause to score diagnosis accuracy.
 
-### `act`
-
-Take a corrective action on a service.
+### `act` -- Take corrective action
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
 | `restart` | Restart the service | OOM, hung processes |
 | `rollback` | Roll back to previous version | Bad deployments |
 | `scale_up` | Add more instances | Resource exhaustion |
-| `scale_down` | Remove instances | Over-provisioning (rare) |
+| `scale_down` | Remove instances | Over-provisioning |
 | `flush_cache` | Clear service cache | Stale/corrupted cache |
 | `drain_connections` | Drain and reset connection pool | Connection pool exhaustion |
 | `kill_canary` | Terminate canary deployment | Bad canary release |
@@ -229,21 +162,19 @@ Take a corrective action on a service.
 ```json
 {
   "action_type": "act",
-  "target": "payment-service",
-  "command": "rollback",
-  "parameters": {"version": "2.3.0"}
+  "target": "auth-service",
+  "command": "kill_canary",
+  "parameters": {}
 }
 ```
 
-### `escalate`
-
-Page a human team for assistance.
+### `escalate` -- Page a human team
 
 | Team | Handles |
 |------|---------|
 | `backend` | Application-level issues |
 | `infrastructure` | Infrastructure, networking, DNS |
-| `database` | Database performance, replication |
+| `database` | Database performance, replication, connection pools |
 | `security` | Auth failures, suspicious activity |
 | `management` | Customer-facing escalations |
 
@@ -256,28 +187,28 @@ Page a human team for assistance.
 }
 ```
 
-Priority levels: `p1` (critical, immediate), `p2` (high, within 15 min), `p3` (medium, within 1 hour).
+Priority levels: `p1` (critical, immediate response), `p2` (high, within 15 minutes), `p3` (medium, within 1 hour).
 
 ---
 
 ## Observation Space
 
-Every call to `reset()` or `step()` returns an observation with these fields:
+Every call to `reset()` or `step()` returns an observation with the following fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `message` | `str` | Human-readable description of what happened (log output, metric values, action result) |
-| `alert_summary` | `dict` | Current alert: `service`, `symptom`, `severity`, `triggered_at` |
+| `message` | `str` | Human-readable description of the current state or action result |
+| `alert_summary` | `dict` | Current alert details: `service`, `symptom`, `severity`, `triggered_at` |
 | `system_status` | `dict` | Map of service name to `{health, latency_ms, error_rate_5xx, cpu_pct, memory_pct}` |
-| `investigation_result` | `str` | Detailed output from the most recent investigation (logs, metrics, etc.) |
+| `investigation_result` | `str` | Detailed output from the most recent investigation (logs, metrics, deployment history) |
 | `available_actions` | `list[str]` | Valid action types from the current state |
 | `action_result` | `str` | Result of the most recent corrective action, if any |
-| `time_elapsed` | `int` | Steps taken so far in the episode |
-| `time_budget` | `int` | Maximum steps allowed for this task |
+| `time_elapsed` | `int` | Simulated seconds elapsed in the episode |
+| `time_budget` | `int` | Maximum simulated seconds for this task |
 | `hint` | `str` | Optional hint (provided in early steps of easy tasks) |
 | `done` | `bool` | Whether the episode has ended |
 | `reward` | `float` | Step-level reward signal |
-| `metadata` | `dict` | Additional context: `scenario_id`, `task_id`, `cascade_events` |
+| `metadata` | `dict` | Additional context: `scenario_id`, `task_id`, `cascade_events`, `steps_taken` |
 
 ### Example Observation (after investigating logs)
 
@@ -285,13 +216,18 @@ Every call to `reset()` or `step()` returns an observation with these fields:
 {
   "message": "Showing recent logs for user-service",
   "investigation_result": "[2026-03-26 14:23:01 ERROR] java.lang.OutOfMemoryError: Java heap space\n[2026-03-26 14:23:01 ERROR]   at com.app.cache.InMemoryStore.put(InMemoryStore.java:142)\n[2026-03-26 14:22:58 WARN] GC overhead limit exceeded, heap usage at 97.3%\n[2026-03-26 14:22:45 INFO] Request processed: GET /api/users/12345 (response: 503)\n[2026-03-26 14:22:30 ERROR] java.lang.OutOfMemoryError: Java heap space",
-  "alert_summary": {"service": "user-service", "symptom": "HTTP 503 errors", "severity": "high", "triggered_at": "2026-03-26T14:20:00Z"},
+  "alert_summary": {
+    "service": "user-service",
+    "symptom": "HTTP 503 errors",
+    "severity": "high",
+    "triggered_at": "2026-03-26T14:20:00Z"
+  },
   "system_status": {
     "user-service": {"health": "degraded", "latency_ms": 2300, "error_rate_5xx": 0.43, "cpu_pct": 45, "memory_pct": 98},
     "api-gateway": {"health": "healthy", "latency_ms": 85, "error_rate_5xx": 0.02, "cpu_pct": 22, "memory_pct": 55}
   },
-  "time_elapsed": 2,
-  "time_budget": 15,
+  "time_elapsed": 12,
+  "time_budget": 100,
   "done": false,
   "reward": 0.05
 }
@@ -301,68 +237,61 @@ Every call to `reset()` or `step()` returns an observation with these fields:
 
 ## Reward Function
 
-IncidentEnv uses a **multi-dimensional reward function** that captures the nuances of real incident response. Agents are scored on *how* they work, not just whether they eventually arrive at the right answer.
+IncidentEnv uses a **multi-dimensional reward function** that captures the nuances of real incident response. Agents are scored on *how* they investigate, diagnose, and act -- not just whether they eventually stumble upon the answer.
 
 ### Step-Level Rewards
 
-Small rewards or penalties are provided at each step to guide learning:
+Small rewards or penalties at each step guide the agent and provide a learning signal:
 
 | Action | Condition | Reward |
 |--------|-----------|--------|
-| `investigate` | Target is relevant to the incident | +0.05 |
-| `investigate` | Target is not relevant | 0.00 |
+| `investigate` | Target is relevant to the incident chain | +0.05 |
+| `investigate` | Target is irrelevant (healthy, unrelated service) | 0.00 |
 | `investigate` | Duplicate of a previous investigation | -0.02 |
-| `diagnose` | Root cause is correct | +0.15 |
-| `diagnose` | Partially correct (right service, wrong cause) | +0.05 |
+| `diagnose` | Correct root cause (3+ matching keywords) | +0.10 |
+| `diagnose` | Partially correct (right service or partial keywords) | +0.05 |
 | `diagnose` | Incorrect | -0.05 |
+| `diagnose` | Submitted before minimum investigations met | Rejected (not scored) |
+| `act` | Correct corrective action on correct service | +0.10 |
+| `act` | Wrong action or wrong target | -0.05 |
 | `escalate` | Correct team and appropriate priority | +0.05 |
 | `escalate` | Wrong team or inappropriate priority | -0.05 |
 
 ### Final Score (Grader)
 
-When an episode ends (via correct resolution, `done=True`, or step limit), the grader computes a final score:
+When an episode completes, the deterministic grader computes a weighted final score:
 
 ```
 final_score = (
-    diagnosis_accuracy   x 0.35 +
-    resolution_quality   x 0.30 +
-    investigation_efficiency x 0.15 +
-    time_factor          x 0.10 +
-    collateral_avoidance x 0.10
+    diagnosis_accuracy     * 0.30 +
+    resolution_quality     * 0.25 +
+    investigation_efficiency * 0.20 +
+    time_factor            * 0.15 +
+    collateral_avoidance   * 0.10
 )
 ```
 
 Each component is scored on a [0.0, 1.0] scale:
 
-| Component | Weight | Description |
-|-----------|--------|-------------|
-| **Diagnosis Accuracy** | 35% | Did the agent identify the correct root cause service and failure mode? Partial credit for identifying the right service but wrong mechanism. |
-| **Resolution Quality** | 30% | Did the agent take the optimal corrective action? Partial credit for helpful-but-suboptimal actions. Penalty for harmful actions (e.g., restarting a healthy service). |
-| **Investigation Efficiency** | 15% | Ratio of relevant investigations to total investigations. Agents that find the answer with fewer, more targeted queries score higher. |
-| **Time Factor** | 10% | How quickly the agent resolved the incident relative to the time budget. Formula: `max(0.0, 1.0 - time_elapsed / time_budget)` |
-| **Collateral Avoidance** | 10% | Did the agent avoid harmful actions? Each unnecessary restart, incorrect rollback, or wrong escalation reduces this score. |
+| Component | Weight | Scoring Logic |
+|-----------|--------|---------------|
+| **Diagnosis Accuracy** | 30% | 0.0 = no diagnosis, 0.4 = correct service only, 0.7 = partial keyword match (1-2 keywords), 1.0 = full match (3+ keywords against expected root cause) |
+| **Resolution Quality** | 25% | 1.0 = optimal action on correct service, 0.5 = suboptimal but helpful action, 0.0 = no action taken, negative penalty for harmful actions |
+| **Investigation Efficiency** | 20% | `relevant_investigations / total_investigations` -- rewards targeted, efficient evidence gathering |
+| **Time Factor** | 15% | `max(0.0, 1.0 - time_elapsed / (time_budget * 0.83))` -- decays to 0 when 83% of budget is consumed |
+| **Collateral Avoidance** | 10% | Starts at 1.0, reduced by 0.15 for each harmful action (wrong restart, unnecessary escalation, etc.) |
 
 The final score is clamped to **[0.0, 1.0]**.
 
-### Time Pressure
+### Novel Mechanics
 
-The time factor creates urgency without making slow-but-correct solutions worthless:
+**Time pressure with decay**: The time factor creates urgency without making slow-but-correct solutions worthless. An agent that solves in 3 steps gets a high time bonus; one that takes 12 steps still earns full marks on diagnosis and resolution, just with a reduced time component. Speed matters, but correctness matters more.
 
-```
-time_factor = max(0.0, 1.0 - time_elapsed / time_budget)
-```
+**Cascading failures**: If the agent takes too long, the simulated system degrades further. Dependent services begin failing, error rates increase, and new misleading symptoms appear. Each cascade event makes the environment harder to reason about and reduces the maximum achievable collateral avoidance score.
 
-An agent that solves the easy task in 3 steps (of 15) gets `time_factor = 0.80`. An agent that takes 12 steps gets `time_factor = 0.20`. This component is worth 10% of the final score --- meaningful but not dominant.
+**Intermittent errors**: The hard task's logs show errors only ~30% of the time on any given check. The first investigation may return mostly clean output with only 2 error lines buried among 30+ successful requests. This tests whether the agent can detect sparse signals or dismisses a service as healthy after one clean-looking log check.
 
-### Cascading Failures
-
-If the agent takes too long, the simulated system degrades:
-
-- **Easy task**: After step 10, one dependent service starts showing elevated error rates.
-- **Medium task**: After step 15, the cascade spreads to a second tier of services.
-- **Hard task**: After step 20, intermittent errors become persistent, and a second service enters `degraded` state.
-
-Each cascade event reduces the `collateral_avoidance` score by 0.15, making it increasingly difficult (but not impossible) to achieve a high final score.
+**Minimum investigation gates**: The environment enforces that agents gather a minimum amount of evidence before submitting a diagnosis. This prevents lucky guessing and ensures that high scores reflect genuine reasoning, not random exploration.
 
 ---
 
@@ -372,28 +301,23 @@ Each cascade event reduces the `collateral_avoidance` score by 0.15, making it i
 
 - Python 3.11+
 - Docker (for containerized deployment)
-- An OpenAI API key (for running the baseline agent)
+- An OpenAI-compatible API key (for running the baseline agent)
 
 ### Docker (Recommended)
-
-Build and run the environment as a Docker container:
 
 ```bash
 docker build -t incident-env -f incident_env/server/Dockerfile .
 docker run -p 7860:7860 incident-env
 ```
 
-The server will be available at `http://localhost:7860`.
-
-Verify it is running:
+The server will be available at `http://localhost:7860`. Verify with:
 
 ```bash
 curl http://localhost:7860/health
+# {"status": "healthy"}
 ```
 
 ### Local Development
-
-Install the package in development mode and start the server:
 
 ```bash
 pip install -e .
@@ -402,17 +326,12 @@ uvicorn incident_env.server.app:app --host 0.0.0.0 --port 7860
 
 ### Running the Baseline Agent
 
-The baseline script uses the OpenAI API to run a GPT-4o-mini agent against all three tasks:
-
 ```bash
 export OPENAI_API_KEY=sk-...
 python -m incident_env.baseline.run_baseline
 ```
 
-The script will:
-1. Connect to the running IncidentEnv server
-2. Run the agent through all three tasks sequentially
-3. Print per-task scores and an overall average
+The script connects to the running server, runs the agent through all three tasks, and prints per-task scores with a final average.
 
 ### Using the Python Client
 
@@ -420,30 +339,38 @@ The script will:
 from incident_env.client import IncidentEnv
 from incident_env.models import IncidentAction
 
-# Connect to the server
 env = IncidentEnv(url="http://localhost:7860")
 
 # Reset for a specific task
 obs = env.reset(task_id="easy_oom")
 
-# Take an action
+# Investigate
 action = IncidentAction(
     action_type="investigate",
     target="user-service",
     command="logs"
 )
 result = env.step(action)
-
 print(result.observation.message)
+print(result.observation.investigation_result)
+
+# Diagnose
+action = IncidentAction(
+    action_type="diagnose",
+    target="user-service",
+    command="OOM from v2.4.1 memory-intensive caching deployment"
+)
+result = env.step(action)
+
+# Act
+action = IncidentAction(
+    action_type="act",
+    target="user-service",
+    command="rollback",
+    parameters={"version": "2.4.0"}
+)
+result = env.step(action)
 print(f"Reward: {result.reward}, Done: {result.done}")
-```
-
-### Validation
-
-Run the OpenEnv validator to confirm compliance:
-
-```bash
-openenv validate
 ```
 
 ---
@@ -452,14 +379,17 @@ openenv validate
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/health` | `GET` | Health check. Returns `200 OK` when server is ready. |
-| `/tasks` | `GET` | List all available tasks with their IDs, difficulty levels, and action schema. |
-| `/reset` | `POST` | Reset the environment and start a new episode. Accepts `{"task_id": "..."}`. |
+| `/` | `GET` | Root endpoint. Returns environment name and version. |
+| `/health` | `GET` | Health check. Returns `200 OK` with `{"status": "healthy"}`. |
+| `/tasks` | `GET` | List all tasks with IDs, difficulty levels, descriptions, and full action schema. |
+| `/reset` | `POST` | Reset environment and start a new episode. Accepts `{"task_id": "easy_oom"}`. |
 | `/step` | `POST` | Submit an action and receive an observation. Accepts an `IncidentAction` JSON body. |
-| `/state` | `GET` | Retrieve the current environment state (episode ID, step count). |
-| `/grader` | `POST` | Compute the grader score for a completed episode. Accepts `{"task_id": "...", "episode_id": "..."}`. |
-| `/baseline` | `POST` | Trigger the baseline inference script. Returns scores for all tasks. |
-| `/ws` | `WebSocket` | WebSocket endpoint for persistent, stateful sessions. |
+| `/state` | `GET` | Retrieve current environment state (episode ID, step count, task ID). |
+| `/schema` | `GET` | Full JSON schema for `IncidentAction` and `IncidentObservation` models. |
+| `/grader` | `POST` | Compute grader score for a completed episode. Accepts `{"task_id": "...", "episode_id": "..."}`. |
+| `/baseline` | `POST` | Trigger baseline inference. Returns per-task scores and average. |
+| `/ws` | `WebSocket` | WebSocket endpoint for persistent, stateful agent sessions. |
+| `/docs` | `GET` | Auto-generated Swagger/OpenAPI documentation (FastAPI built-in). |
 
 ### Example: GET /tasks
 
@@ -471,21 +401,21 @@ openenv validate
       "name": "Single Service OOM Crash",
       "difficulty": "easy",
       "max_steps": 15,
-      "description": "user-service is returning 503 errors due to an OutOfMemoryError"
+      "description": "user-service is returning 503 errors due to an OutOfMemoryError from a recent deployment"
     },
     {
       "id": "medium_db_pool",
       "name": "Cascading Database Connection Pool Exhaustion",
       "difficulty": "medium",
-      "max_steps": 25,
-      "description": "api-gateway latency spike caused by database lock contention"
+      "max_steps": 15,
+      "description": "payment-service timeouts caused by database connection pool exhaustion from user-service leak"
     },
     {
       "id": "hard_canary",
-      "name": "Intermittent Canary Deployment Regression",
+      "name": "Intermittent Canary Deployment with OAuth Provider Failures",
       "difficulty": "hard",
-      "max_steps": 35,
-      "description": "Intermittent 5xx errors caused by a race condition in a canary deployment"
+      "max_steps": 15,
+      "description": "Intermittent 5xx errors from auth-service canary deployment affecting provider-B OAuth tokens"
     }
   ],
   "action_schema": {
@@ -522,43 +452,6 @@ openenv validate
 
 ---
 
-## Baseline Scores
-
-Scores from the baseline agent using `gpt-4o-mini` (averaged over 3 runs with fixed seeds):
-
-| Task | ID | Score | Notes |
-|------|----|-------|-------|
-| Easy --- OOM Crash | `easy_oom` | **0.78** | Successfully identifies OOM from logs and restarts the service. Occasionally wastes steps on irrelevant investigations. |
-| Medium --- DB Pool | `medium_db_pool` | **0.52** | Usually traces to auth-service but sometimes fails to follow the chain to the database. Partial credit from correct service identification. |
-| Hard --- Canary | `hard_canary` | **0.31** | Struggles with temporal correlation. Often fixates on cache miss rate (red herring) or notification-service warnings. Rarely identifies the canary deployment as the root cause. |
-| | **Average** | **0.54** | |
-
-These scores demonstrate meaningful difficulty progression: the easy task is reliably solvable, the medium task requires multi-hop reasoning that sometimes fails, and the hard task genuinely challenges the model's ability to correlate events across time and services.
-
----
-
-## Design Decisions
-
-### Deterministic Scenarios
-Given the same task ID and seed, the environment produces identical scenarios with identical logs, metrics, and system states. The same sequence of actions always produces the same rewards. This ensures reproducible evaluation and fair comparison between agents.
-
-### Rich Text Observations
-Log messages are modeled after real production output, with realistic timestamps, log levels, class names, and stack traces. Metric names follow industry conventions (`p99_latency_ms`, `error_rate_5xx`, `cpu_utilization_pct`). This ensures that agents must parse realistic text, not simplified toy formats.
-
-### Simulated Time (Not Wall Clock)
-Each action costs one simulated time unit. This makes evaluation deterministic and reproducible regardless of network latency or compute speed. The `time_elapsed` / `time_budget` ratio drives the time pressure reward component.
-
-### Multi-Dimensional Grading
-A binary correct/incorrect grader would fail to distinguish between an agent that investigates systematically and one that guesses randomly. Our five-component grader captures investigation strategy, diagnostic accuracy, action quality, speed, and safety --- all dimensions that matter in real incident response.
-
-### Cascading System Model
-In real production systems, failures propagate. A database outage does not stay contained --- it ripples through every service that depends on it. IncidentEnv models this propagation, creating dynamic scenarios where the system gets worse over time. This rewards agents that act decisively and penalizes those that investigate endlessly without taking action.
-
-### No External Dependencies at Runtime
-The environment server has zero external API calls. All system simulation runs locally inside the container. Only the baseline inference script (which is a separate evaluation tool) calls the OpenAI API.
-
----
-
 ## Project Structure
 
 ```
@@ -571,22 +464,61 @@ incident_env/
 ├── README.md                          # This file
 ├── scenarios/
 │   ├── __init__.py
-│   ├── easy.py                        # Single Service OOM scenario
-│   ├── medium.py                      # Cascading DB Latency scenario
-│   └── hard.py                        # Intermittent Canary scenario
+│   ├── easy.py                        # Single Service OOM scenario data
+│   ├── medium.py                      # Cascading DB Pool Exhaustion scenario data
+│   └── hard.py                        # Intermittent Canary + OAuth scenario data
 ├── graders/
 │   ├── __init__.py
-│   └── grader.py                      # Deterministic grading logic
+│   └── grader.py                      # Deterministic grading logic (5-component scoring)
 ├── baseline/
 │   ├── __init__.py
-│   └── run_baseline.py                # OpenAI API baseline agent
+│   └── run_baseline.py                # OpenAI API baseline agent loop
 └── server/
     ├── __init__.py
-    ├── incident_environment.py        # Core Environment subclass
-    ├── app.py                         # FastAPI app + custom endpoints
+    ├── incident_environment.py        # Core Environment subclass (reset/step/state)
+    ├── app.py                         # FastAPI app + /tasks, /grader, /baseline endpoints
     ├── requirements.txt               # Server dependencies
-    └── Dockerfile                     # Container image
+    └── Dockerfile                     # Container image for HF Spaces deployment
 ```
+
+---
+
+## Design Principles
+
+### Deterministic Scenarios
+Given the same task ID and seed, the environment produces identical scenarios with identical logs, metrics, and system states. The same sequence of actions always produces the same rewards. This ensures reproducible evaluation and fair comparison between agents.
+
+### Rich Text Observations
+Log messages are modeled after real production output with realistic timestamps, log levels, Java/Python class names, and stack traces. Metric names follow industry conventions (`p99_latency_ms`, `error_rate_5xx`, `cpu_utilization_pct`). Service names are realistic (`api-gateway`, `auth-service`, `payment-service`). Agents must parse production-grade text, not simplified toy formats.
+
+### Multi-Dimensional Grading
+A binary correct/incorrect grader fails to distinguish systematic investigation from random guessing. The five-component grader captures investigation strategy, diagnostic accuracy, action quality, speed, and safety -- all dimensions that matter in real incident response and that create rich training signal for agent improvement.
+
+### Simulated Time (Not Wall Clock)
+Each action costs simulated time units. This makes evaluation deterministic and reproducible regardless of network latency or compute speed. The `time_elapsed / time_budget` ratio drives the time pressure reward component.
+
+### Cascading System Model
+In real production systems, failures propagate. A database connection pool exhaustion does not stay contained -- it ripples through every service that depends on it. IncidentEnv models this propagation, creating dynamic scenarios where the system gets worse over time. This rewards agents that act decisively and penalizes those that investigate endlessly without taking action.
+
+### No External Dependencies at Runtime
+The environment server has zero external API calls. All system simulation runs locally inside the container. Only the baseline inference script (a separate evaluation tool) calls external LLM APIs.
+
+---
+
+## Validation
+
+```
+$ openenv validate
+[OK] incident: Ready for multi-mode deployment
+```
+
+The environment passes all OpenEnv validation checks:
+- Server starts and responds to health checks
+- `reset()` produces clean state with valid observations
+- `step()` accepts valid actions and returns well-formed observations
+- Graders produce deterministic scores in [0.0, 1.0]
+- All custom endpoints (`/tasks`, `/grader`, `/baseline`) respond correctly
+- Docker container builds and runs without errors
 
 ---
 

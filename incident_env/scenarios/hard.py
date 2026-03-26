@@ -41,598 +41,1160 @@ from incident_env.scenarios.base import BaseScenario, CascadingEffect, ServiceIn
 # First-time auth-service logs: MOSTLY clean. Only 2 subtle errors buried
 # among 30+ success lines. Errors do NOT mention provider-B explicitly.
 _AUTH_LOGS_FIRST_CHECK = """\
-[2024-03-15T14:32:01Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_20184 status=ok latency_ms=11 pod=auth-stable-7b4f9
-[2024-03-15T14:32:01Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_44920 status=ok latency_ms=9 pod=auth-stable-a3m8k
-[2024-03-15T14:32:02Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_38127 status=ok latency_ms=13 pod=auth-stable-7b4f9
-[2024-03-15T14:32:02Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_72841 status=ok latency_ms=10 pod=auth-canary-x9k2m
-[2024-03-15T14:32:03Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_55301 status=ok latency_ms=15 pod=auth-stable-a3m8k
-[2024-03-15T14:32:03Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_73219 status=ok latency_ms=8 pod=auth-canary-x9k2m
-[2024-03-15T14:32:04Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_12847 status=ok latency_ms=11 pod=auth-stable-7b4f9
-[2024-03-15T14:32:04Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_33918 status=ok latency_ms=9 pod=auth-stable-7b4f9
-[2024-03-15T14:32:05Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_28471 status=ok latency_ms=12 pod=auth-stable-a3m8k
-[2024-03-15T14:32:05Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_61845 status=ok latency_ms=10 pod=auth-stable-7b4f9
-[2024-03-15T14:32:06Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_90184 status=ok latency_ms=12 pod=auth-stable-7b4f9
-[2024-03-15T14:32:06Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_48271 status=ok latency_ms=9 pod=auth-stable-a3m8k
-[2024-03-15T14:32:07Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_52093 status=ok latency_ms=14 pod=auth-stable-7b4f9
-[2024-03-15T14:32:07Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_19472 status=ok latency_ms=7 pod=auth-stable-a3m8k
-[2024-03-15T14:32:08Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_44192 status=ok latency_ms=8 pod=auth-canary-x9k2m
-[2024-03-15T14:32:08Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_73891 status=ok latency_ms=10 pod=auth-stable-7b4f9
-[2024-03-15T14:32:09Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_88214 status=ok latency_ms=11 pod=auth-stable-a3m8k
-[2024-03-15T14:32:09Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_91823 status=fail error="claim structure mismatch" pod=auth-canary-x9k2m
-[2024-03-15T14:32:10Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_66501 status=ok latency_ms=9 pod=auth-stable-7b4f9
-[2024-03-15T14:32:10Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_33782 status=ok latency_ms=13 pod=auth-stable-a3m8k
-[2024-03-15T14:32:11Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_42918 status=ok latency_ms=10 pod=auth-stable-7b4f9
-[2024-03-15T14:32:11Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_77341 status=ok latency_ms=8 pod=auth-stable-a3m8k
-[2024-03-15T14:32:12Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_29104 status=ok latency_ms=12 pod=auth-stable-7b4f9
-[2024-03-15T14:32:12Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_51283 status=ok latency_ms=7 pod=auth-canary-x9k2m
-[2024-03-15T14:32:13Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_84629 status=ok latency_ms=11 pod=auth-stable-a3m8k
-[2024-03-15T14:32:13Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_37104 status=ok latency_ms=14 pod=auth-stable-7b4f9
-[2024-03-15T14:32:14Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_67234 status=fail error="claim structure mismatch" pod=auth-canary-x9k2m
-[2024-03-15T14:32:14Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_95127 status=ok latency_ms=9 pod=auth-stable-a3m8k
-[2024-03-15T14:32:15Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_18493 status=ok latency_ms=10 pod=auth-stable-7b4f9
-[2024-03-15T14:32:15Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_62817 status=ok latency_ms=8 pod=auth-stable-a3m8k"""
+2024-03-15T14:32:01.117Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_20184 provider=provider-A latency_ms=11 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-4d8a2f requestId=req-00a1b2 spanId=span-7c91
+2024-03-15T14:32:01.312Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_44920 provider=provider-C latency_ms=9 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-7f1b3e requestId=req-00a1b3 spanId=span-8d02
+2024-03-15T14:32:02.044Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_38127 provider=provider-A latency_ms=13 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-a91c4d requestId=req-00a1b4 spanId=span-9e13
+2024-03-15T14:32:02.518Z INFO  [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_72841 provider=provider-A latency_ms=10 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-b02d5e requestId=req-00a1b5 spanId=span-0f24
+2024-03-15T14:32:03.201Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_55301 provider=provider-C latency_ms=15 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-c13e6f requestId=req-00a1b6 spanId=span-1a35
+2024-03-15T14:32:03.784Z INFO  [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_73219 provider=provider-C latency_ms=8 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-d24f70 requestId=req-00a1b7 spanId=span-2b46
+2024-03-15T14:32:04.105Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_12847 provider=provider-A latency_ms=11 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-e35a81 requestId=req-00a1b8 spanId=span-3c57
+2024-03-15T14:32:04.622Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_33918 provider=provider-A latency_ms=9 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-f46b92 requestId=req-00a1b9 spanId=span-4d68
+2024-03-15T14:32:05.338Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_28471 provider=provider-A latency_ms=12 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-057ca3 requestId=req-00a1c0 spanId=span-5e79
+2024-03-15T14:32:05.791Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_61845 provider=provider-C latency_ms=10 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-168db4 requestId=req-00a1c1 spanId=span-6f8a
+2024-03-15T14:32:06.204Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_90184 provider=provider-A latency_ms=12 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-279ec5 requestId=req-00a1c2 spanId=span-709b
+2024-03-15T14:32:06.517Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_48271 provider=provider-C latency_ms=9 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-38afd6 requestId=req-00a1c3 spanId=span-81ac
+2024-03-15T14:32:07.004Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_52093 provider=provider-A latency_ms=14 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-49b0e7 requestId=req-00a1c4 spanId=span-92bd
+2024-03-15T14:32:07.418Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_19472 provider=provider-A latency_ms=7 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-5ac1f8 requestId=req-00a1c5 spanId=span-a3ce
+2024-03-15T14:32:08.102Z INFO  [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_44192 provider=provider-C latency_ms=8 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-6bd209 requestId=req-00a1c6 spanId=span-b4df
+2024-03-15T14:32:08.533Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_73891 provider=provider-A latency_ms=10 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-7ce31a requestId=req-00a1c7 spanId=span-c5e0
+2024-03-15T14:32:09.217Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_88214 provider=provider-A latency_ms=11 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-8df42b requestId=req-00a1c8 spanId=span-d6f1
+2024-03-15T14:32:09.891Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_91823 \
+error=schema_mismatch field=realm_access traceId=trace-9e053c requestId=req-00a1c9 spanId=span-e702
+2024-03-15T14:32:10.014Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_91823 error="claim structure validation failed" \
+details={"field":"realm_access","expected":"flat","got":"nested"} \
+traceId=trace-9e053c requestId=req-00a1c9 spanId=span-e702 httpStatus=500
+2024-03-15T14:32:10.498Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_66501 provider=provider-A latency_ms=9 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-af164d requestId=req-00a1d0 spanId=span-f813
+2024-03-15T14:32:10.901Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_33782 provider=provider-C latency_ms=13 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-b0275e requestId=req-00a1d1 spanId=span-0924
+2024-03-15T14:32:11.244Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_42918 provider=provider-A latency_ms=10 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-c1386f requestId=req-00a1d2 spanId=span-1a35
+2024-03-15T14:32:11.712Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_77341 provider=provider-A latency_ms=8 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-d2497a requestId=req-00a1d3 spanId=span-2b46
+2024-03-15T14:32:12.108Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_29104 provider=provider-C latency_ms=12 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-e35a8b requestId=req-00a1d4 spanId=span-3c57
+2024-03-15T14:32:12.590Z INFO  [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_51283 provider=provider-A latency_ms=7 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-f46b9c requestId=req-00a1d5 spanId=span-4d68
+2024-03-15T14:32:13.077Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_84629 provider=provider-C latency_ms=11 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-057cad requestId=req-00a1d6 spanId=span-5e79
+2024-03-15T14:32:13.421Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_37104 provider=provider-A latency_ms=14 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-168dbe requestId=req-00a1d7 spanId=span-6f8a
+2024-03-15T14:32:14.005Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_67234 \
+error=schema_mismatch field=realm_access traceId=trace-279ecf requestId=req-00a1d8 spanId=span-709b
+2024-03-15T14:32:14.018Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_67234 error="claim structure validation failed" \
+details={"field":"realm_access","expected":"flat","got":"nested"} \
+traceId=trace-279ecf requestId=req-00a1d8 spanId=span-709b httpStatus=500
+2024-03-15T14:32:14.412Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_95127 provider=provider-A latency_ms=9 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-38afd0 requestId=req-00a1d9 spanId=span-81ac
+2024-03-15T14:32:15.087Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_18493 provider=provider-C latency_ms=10 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-49b0e1 requestId=req-00a1e0 spanId=span-92bd
+2024-03-15T14:32:15.498Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_62817 provider=provider-A latency_ms=8 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-5ac1f2 requestId=req-00a1e1 spanId=span-a3ce"""
 
 # Second-time auth-service logs: more errors visible, shows the pattern
 # more clearly. Still no explicit "provider-B" label — just more error lines
 # on the canary pod. Agent needs to correlate with deployment/config.
 _AUTH_LOGS_SECOND_CHECK = """\
-[2024-03-15T14:35:01Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_20184 status=ok latency_ms=11 pod=auth-stable-7b4f9
-[2024-03-15T14:35:01Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_83921 status=fail error="claim structure mismatch" pod=auth-canary-x9k2m
-[2024-03-15T14:35:02Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_38127 status=ok latency_ms=13 pod=auth-stable-7b4f9
-[2024-03-15T14:35:02Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_47182 status=fail error="claim structure mismatch: unexpected nested field in realm_access" pod=auth-canary-x9k2m
-[2024-03-15T14:35:03Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_55301 status=ok latency_ms=15 pod=auth-stable-a3m8k
-[2024-03-15T14:35:03Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_73219 status=ok latency_ms=8 pod=auth-canary-x9k2m
-[2024-03-15T14:35:04Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_91823 status=fail error="claim structure mismatch" pod=auth-canary-x9k2m
-[2024-03-15T14:35:04Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_12847 status=ok latency_ms=11 pod=auth-stable-7b4f9
-[2024-03-15T14:35:05Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_33918 status=ok latency_ms=9 pod=auth-stable-7b4f9
-[2024-03-15T14:35:05Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_67234 status=fail error="claim structure mismatch: unexpected nested field in realm_access" pod=auth-canary-x9k2m
-[2024-03-15T14:35:06Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_28471 status=ok latency_ms=12 pod=auth-stable-a3m8k
-[2024-03-15T14:35:06Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_82156 status=fail error="claim structure mismatch" pod=auth-canary-x9k2m
-[2024-03-15T14:35:07Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_61845 status=ok latency_ms=10 pod=auth-stable-7b4f9
-[2024-03-15T14:35:07Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_90184 status=ok latency_ms=12 pod=auth-stable-7b4f9
-[2024-03-15T14:35:08Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_16392 status=fail error="claim structure mismatch: unexpected nested field in realm_access" pod=auth-canary-x9k2m
-[2024-03-15T14:35:08Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_48271 status=ok latency_ms=9 pod=auth-stable-a3m8k
-[2024-03-15T14:35:09Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_52093 status=ok latency_ms=14 pod=auth-stable-7b4f9
-[2024-03-15T14:35:09Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_39471 status=fail error="claim structure mismatch" pod=auth-canary-x9k2m
-[2024-03-15T14:35:10Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_19472 status=ok latency_ms=7 pod=auth-stable-a3m8k
-[2024-03-15T14:35:10Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_73891 status=ok latency_ms=10 pod=auth-stable-7b4f9
-[2024-03-15T14:35:11Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_58214 status=fail error="claim structure mismatch: unexpected nested field in realm_access" pod=auth-canary-x9k2m
-[2024-03-15T14:35:11Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_44192 status=ok latency_ms=8 pod=auth-canary-x9k2m
-[2024-03-15T14:35:12Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_33782 status=ok latency_ms=13 pod=auth-stable-a3m8k
-[2024-03-15T14:35:12Z] ERROR auth-service/handler.go:112 token_validation user_id=usr_71029 status=fail error="claim structure mismatch" pod=auth-canary-x9k2m
-[2024-03-15T14:35:13Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_42918 status=ok latency_ms=10 pod=auth-stable-7b4f9
-[2024-03-15T14:35:13Z] INFO  auth-service/handler.go:89  token_validation user_id=usr_84629 status=ok latency_ms=11 pod=auth-stable-a3m8k"""
+2024-03-15T14:35:01.204Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_20184 provider=provider-A latency_ms=11 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-4d8a2f requestId=req-01b2c3 spanId=span-7c91
+2024-03-15T14:35:01.518Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_83921 \
+error=schema_mismatch field=realm_access traceId=trace-aa1b2c requestId=req-01b2c4 spanId=span-dd01
+2024-03-15T14:35:01.521Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_83921 error="claim structure validation failed" \
+details={"field":"realm_access","expected":"flat","got":"nested"} \
+traceId=trace-aa1b2c requestId=req-01b2c4 spanId=span-dd01 httpStatus=500
+2024-03-15T14:35:02.044Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_38127 provider=provider-A latency_ms=13 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-bb2c3d requestId=req-01b2c5 spanId=span-ee12
+2024-03-15T14:35:02.397Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_47182 \
+error=schema_mismatch field=realm_access traceId=trace-cc3d4e requestId=req-01b2c6 spanId=span-ff23
+2024-03-15T14:35:02.401Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_47182 error="claim structure validation failed: \
+unexpected nested field in realm_access" \
+details={"field":"realm_access.nested_permissions","expected":"absent","got":"object{4 keys}"} \
+traceId=trace-cc3d4e requestId=req-01b2c6 spanId=span-ff23 httpStatus=500
+2024-03-15T14:35:03.201Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_55301 provider=provider-C latency_ms=15 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-dd4e5f requestId=req-01b2c7 spanId=span-0034
+2024-03-15T14:35:03.784Z INFO  [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_73219 provider=provider-C latency_ms=8 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-ee5f60 requestId=req-01b2c8 spanId=span-1145
+2024-03-15T14:35:04.112Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_91823 \
+error=schema_mismatch field=realm_access traceId=trace-ff6071 requestId=req-01b2c9 spanId=span-2256
+2024-03-15T14:35:04.115Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_91823 error="claim structure validation failed" \
+details={"field":"realm_access","expected":"flat","got":"nested"} \
+traceId=trace-ff6071 requestId=req-01b2c9 spanId=span-2256 httpStatus=500
+2024-03-15T14:35:04.622Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_12847 provider=provider-A latency_ms=11 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-007182 requestId=req-01b2d0 spanId=span-3367
+2024-03-15T14:35:05.338Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_33918 provider=provider-A latency_ms=9 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-118293 requestId=req-01b2d1 spanId=span-4478
+2024-03-15T14:35:05.741Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_67234 \
+error=schema_mismatch field=realm_access traceId=trace-2293a4 requestId=req-01b2d2 spanId=span-5589
+2024-03-15T14:35:05.744Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_67234 error="claim structure validation failed: \
+unexpected nested field in realm_access" \
+details={"field":"realm_access.nested_permissions","expected":"absent","got":"object{4 keys}"} \
+traceId=trace-2293a4 requestId=req-01b2d2 spanId=span-5589 httpStatus=500
+2024-03-15T14:35:06.204Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_28471 provider=provider-A latency_ms=12 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-33a4b5 requestId=req-01b2d3 spanId=span-669a
+2024-03-15T14:35:06.601Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_82156 \
+error=schema_mismatch field=realm_access traceId=trace-44b5c6 requestId=req-01b2d4 spanId=span-77ab
+2024-03-15T14:35:06.604Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_82156 error="claim structure validation failed" \
+details={"field":"realm_access","expected":"flat","got":"nested"} \
+traceId=trace-44b5c6 requestId=req-01b2d4 spanId=span-77ab httpStatus=500
+2024-03-15T14:35:07.087Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_61845 provider=provider-C latency_ms=10 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-55c6d7 requestId=req-01b2d5 spanId=span-88bc
+2024-03-15T14:35:07.498Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_90184 provider=provider-A latency_ms=12 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-66d7e8 requestId=req-01b2d6 spanId=span-99cd
+2024-03-15T14:35:08.102Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_16392 \
+error=schema_mismatch field=realm_access traceId=trace-77e8f9 requestId=req-01b2d7 spanId=span-aade
+2024-03-15T14:35:08.105Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_16392 error="claim structure validation failed: \
+unexpected nested field in realm_access" \
+details={"field":"realm_access.nested_permissions","expected":"absent","got":"object{4 keys}"} \
+traceId=trace-77e8f9 requestId=req-01b2d7 spanId=span-aade httpStatus=500
+2024-03-15T14:35:08.533Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_48271 provider=provider-C latency_ms=9 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-88f90a requestId=req-01b2d8 spanId=span-bbef
+2024-03-15T14:35:09.217Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_52093 provider=provider-A latency_ms=14 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-990a1b requestId=req-01b2d9 spanId=span-cc00
+2024-03-15T14:35:09.601Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_39471 \
+error=schema_mismatch field=realm_access traceId=trace-aa1b2d requestId=req-01b2e0 spanId=span-dd11
+2024-03-15T14:35:09.604Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_39471 error="claim structure validation failed" \
+details={"field":"realm_access","expected":"flat","got":"nested"} \
+traceId=trace-aa1b2d requestId=req-01b2e0 spanId=span-dd11 httpStatus=500
+2024-03-15T14:35:10.087Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_19472 provider=provider-A latency_ms=7 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-bb2c3e requestId=req-01b2e1 spanId=span-ee22
+2024-03-15T14:35:10.498Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_73891 provider=provider-A latency_ms=10 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-cc3d4f requestId=req-01b2e2 spanId=span-ff33
+2024-03-15T14:35:11.102Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_58214 \
+error=schema_mismatch field=realm_access traceId=trace-dd4e50 requestId=req-01b2e3 spanId=span-0044
+2024-03-15T14:35:11.105Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_58214 error="claim structure validation failed: \
+unexpected nested field in realm_access" \
+details={"field":"realm_access.nested_permissions","expected":"absent","got":"object{4 keys}"} \
+traceId=trace-dd4e50 requestId=req-01b2e3 spanId=span-0044 httpStatus=500
+2024-03-15T14:35:11.498Z INFO  [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_44192 provider=provider-C latency_ms=8 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-ee5f61 requestId=req-01b2e4 spanId=span-1155
+2024-03-15T14:35:12.087Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_33782 provider=provider-C latency_ms=13 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-ff6072 requestId=req-01b2e5 spanId=span-2266
+2024-03-15T14:35:12.498Z WARN  [auth-svc-canary-x9k2m] c.a.auth.claims.ClaimsValidator - \
+Claim validation warning: unexpected nested structure in JWT claims userId=usr_71029 \
+error=schema_mismatch field=realm_access traceId=trace-007183 requestId=req-01b2e6 spanId=span-3377
+2024-03-15T14:35:12.501Z ERROR [auth-svc-canary-x9k2m] c.a.auth.handler.TokenValidator - \
+Token validation failed userId=usr_71029 error="claim structure validation failed" \
+details={"field":"realm_access","expected":"flat","got":"nested"} \
+traceId=trace-007183 requestId=req-01b2e6 spanId=span-3377 httpStatus=500
+2024-03-15T14:35:13.204Z INFO  [auth-svc-stable-7b4f9] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_42918 provider=provider-A latency_ms=10 \
+claims=[sub,iss,exp,iat,roles] traceId=trace-118294 requestId=req-01b2e7 spanId=span-4488
+2024-03-15T14:35:13.712Z INFO  [auth-svc-stable-a3m8k] c.a.auth.handler.TokenValidator - \
+Token validated successfully userId=usr_84629 provider=provider-C latency_ms=11 \
+claims=[sub,iss,exp,iat,permissions] traceId=trace-2293a5 requestId=req-01b2e8 spanId=span-5599"""
 
 # Auth-service metrics: shows per-pod breakdown but NO per-provider breakdown.
 # The agent can see canary pod has higher errors but not WHY.
 _AUTH_METRICS = """\
-Service: auth-service
+Service: auth-service (prod-us-east-1) — canary deployment active
+
   Replicas: 3 (2 stable + 1 canary)
-  Overall Metrics (last 15 min):
-    p50_latency_ms: 45
-    p95_latency_ms: 320
-    p99_latency_ms: 800
-    error_rate_5xx: 0.082
-    request_rate_rps: 2400
-    success_rate: 91.8%
-    cpu_utilization_pct: 50.1
-    memory_utilization_pct: 45.3
-    active_connections: 4812
-    connection_pool_usage_pct: 62.0
+  Deployment: v5.0.4-stable (90%) / v5.1.0-canary (10%)
 
-  Per-Pod Breakdown:
-    auth-stable-7b4f9 (~45% traffic):
-      error_rate_5xx: 0.001
-      request_rate_rps: 1080
-      p99_latency_ms: 88
-      cpu_utilization_pct: 38.2
-      memory_utilization_pct: 42.0
+  Aggregate Metrics (last 15m, scraped from Prometheus):
+    http_requests_total:           2,412 req/s
+    http_request_duration_seconds:
+      p50:                         42ms
+      p95:                         320ms
+      p99:                         812ms       (baseline: 95ms) ← ELEVATED
+    http_requests_errors_total:
+      5xx_rate:                    0.0821      (baseline: 0.002) ← ELEVATED
+      4xx_rate:                    0.031       (nominal)
+    process_cpu_seconds_total:     50.1%
+    process_resident_memory_bytes: 1,847 MB / 4,096 MB limit (45.1%)
+    go_goroutines:                 2,841
+    grpc_connections_active:       4,812
+    connection_pool_usage_pct:     62.0%
 
-    auth-stable-a3m8k (~45% traffic):
-      error_rate_5xx: 0.001
-      request_rate_rps: 1080
-      p99_latency_ms: 92
-      cpu_utilization_pct: 39.7
-      memory_utilization_pct: 43.1
+  Per-Pod Breakdown (envoy sidecar metrics):
+    auth-svc-stable-7b4f9 (traffic weight: ~45%):
+      envoy_http_downstream_rq_5xx:   0.0012    (nominal)
+      envoy_http_downstream_rq_total: 1,085 req/s
+      http_request_duration_p99:      88ms
+      container_cpu_usage_seconds:    38.2%
+      container_memory_rss:           1,721 MB
 
-    auth-canary-x9k2m (~10% traffic):
-      error_rate_5xx: 0.82
-      request_rate_rps: 240
-      p99_latency_ms: 1850
-      cpu_utilization_pct: 78.4
-      memory_utilization_pct: 52.1"""
+    auth-svc-stable-a3m8k (traffic weight: ~45%):
+      envoy_http_downstream_rq_5xx:   0.0009    (nominal)
+      envoy_http_downstream_rq_total: 1,087 req/s
+      http_request_duration_p99:      92ms
+      container_cpu_usage_seconds:    39.7%
+      container_memory_rss:           1,764 MB
+
+    auth-svc-canary-x9k2m (traffic weight: ~10%):
+      envoy_http_downstream_rq_5xx:   0.8214    ← CRITICAL
+      envoy_http_downstream_rq_total: 240 req/s
+      http_request_duration_p99:      1,891ms
+      container_cpu_usage_seconds:    78.4%     (error-handling overhead)
+      container_memory_rss:           2,134 MB
+
+  Canary Analysis (Kayenta / automated):
+    canary_health_score:   12 / 100    ← FAILING
+    auto_promote_blocked:  true (error_rate 82.14% >> threshold 1%)
+    baseline_comparison:   SIGNIFICANT_REGRESSION"""
 
 _AUTH_DEPLOYMENTS = """\
-Deployment History for auth-service:
+Deployment History: auth-service (prod-us-east-1)
 
-  v5.1.0-canary -- deployed 2024-03-15T14:10:00Z (25 min ago) by ci-bot
-    Commit: 7a8b9c0 -- "migrate to structured claims validation library v3"
-    PR: #2341 -- "Upgrade claims parsing for provider compliance"
-    Change Summary:
-      - Replaced legacy token parser (pkg/auth/legacy_parser.go) with new
-        structured claims library (github.com/org/claims-validator v3.0.1)
-      - New library uses stricter schema validation for JWT claim structures
-      - Intended to improve compliance with OAuth 2.1 spec
-    Reviewers: @sarah-auth, @mike-platform (approved)
-    CI Status: All unit tests passed, integration tests passed
-    Image: registry.internal/auth-service:v5.1.0-canary
-    Traffic Split: 10% canary (auth-canary-x9k2m) / 90% stable (auth-stable-*)
-    Canary Policy: auto-promote after 2h if error_rate < 1%
-    Rollback: instant via `kubectl set traffic auth-service --canary=0`
-    Status: CANARY_ACTIVE -- promotion blocked (error threshold exceeded)
+  ┌─ CANARY (active) ─────────────────────────────────────────────────────
+  │ Version:      v5.1.0-canary
+  │ Deployed:     2024-03-15T14:10:00Z (25 min ago)
+  │ Strategy:     Canary (10% traffic → auth-svc-canary-x9k2m)
+  │ Triggered by: ci-bot via merged PR #2341
+  │ Commit:       7a8b9c0 "migrate to structured claims validation library v3"
+  │ Author:       sarah@company.com
+  │ Reviewers:    @sarah-auth, @mike-platform (both approved)
+  │ CI Pipeline:  ✓ unit tests (847/847) | ✓ integration (312/312) | ✓ lint | ✓ SAST
+  │ Image:        registry.internal/auth-service:v5.1.0-canary@sha256:a9f8c2e1...
+  │ Traffic:      10% canary / 90% stable
+  │ Auto-promote: blocked (error_rate 82.14% >> threshold 1%)
+  │ Rollback:     instant via traffic shift (kubectl set traffic auth-service --canary=0)
+  │
+  │ Changelog:
+  │   - Replaced legacy token parser (pkg/auth/legacy_parser.go) with
+  │     structured claims library (github.com/org/claims-validator v3.0.1)
+  │   - New library enforces stricter schema validation for JWT claim structures
+  │   - Intended to improve compliance with OAuth 2.1 spec
+  │   - Disabled legacy_parser_fallback (was: true → now: false)
+  │   - Added nested_claims_support flag (new in v5.1.0)
+  └───────────────────────────────────────────────────────────────────────
 
-  v5.0.4 (stable) -- deployed 2024-03-10T08:00:00Z (5 days ago) by ci-bot
-    Commit: 3d4e5f6 -- "add structured logging for OAuth provider metrics"
-    Changes: Minor logging improvements, no behavioral changes
-    Status: STABLE
-    Pods: auth-stable-7b4f9, auth-stable-a3m8k
+  ┌─ STABLE (current baseline) ───────────────────────────────────────────
+  │ Version:    v5.0.4
+  │ Deployed:   2024-03-10T08:00:00Z (5 days ago)
+  │ Triggered:  ci-bot via PR #2298
+  │ Commit:     3d4e5f6 "add structured logging for OAuth provider metrics"
+  │ Changes:    Minor logging improvements, no behavioral changes
+  │ Pods:       auth-svc-stable-7b4f9, auth-svc-stable-a3m8k
+  │ Status:     STABLE
+  └───────────────────────────────────────────────────────────────────────
 
-  v5.0.3 -- deployed 2024-03-03T14:30:00Z (12 days ago)
-    Changes: Rate limiter tuning (increased quota from 500 to 800 rps)
-    Status: SUPERSEDED
+  Previous Releases:
+    v5.0.3 — deployed 2024-03-03T14:30:00Z (12 days ago)
+      Commit: b2c3d4e "rate limiter tuning: increased quota 500→800 rps"
+      Status: SUPERSEDED
 
-  v5.0.2 -- deployed 2024-02-28T10:00:00Z (16 days ago)
-    Changes: Fixed connection pool leak on timeout path
-    Status: SUPERSEDED"""
+    v5.0.2 — deployed 2024-02-28T10:00:00Z (16 days ago)
+      Commit: e5f6a7b "fix connection pool leak on timeout path"
+      Status: SUPERSEDED"""
 
 _AUTH_DEPENDENCIES = """\
-Service: auth-service
-  Upstream (services that call auth-service):
-    - api-gateway (all authenticated requests pass through auth-service)
-    - order-service (validates user tokens before processing orders)
-    - payment-service (validates tokens for payment authorization)
+auth-service (v5.1.0-canary / v5.0.4-stable) — Dependency Graph
 
-  Downstream (services that auth-service depends on):
-    - database: stores session data, token revocation lists, provider configs
-      Connection status: HEALTHY, pool: 48/100 active
-    - cache: caches validated tokens (TTL=300s) and provider JWKS keys
-      Connection status: HEALTHY, hit_rate: 94.2%
+  Downstream Dependencies (services auth-service calls):
+  ├─→ database (PostgreSQL 15.4) [latency: 4ms | errors: 0.0% | pool: 48/100 | circuit: CLOSED]
+  ├─→ cache (Redis 7.2)          [latency: 1.1ms | errors: 0.0% | hit_rate: 94.2% | circuit: CLOSED]
+  ├─→ provider-A (external OAuth) [status: HEALTHY | last_check: 2m ago | p99: 45ms]
+  ├─→ provider-B (external OAuth) [status: HEALTHY | last_check: 2m ago | p99: 52ms]
+  │   └─ Note: Had 45min outage on 2024-03-10 (5 days ago, fully resolved — RCA: provider-side DNS)
+  └─→ provider-C (external OAuth) [status: HEALTHY | last_check: 2m ago | p99: 38ms]
 
-  OAuth Providers (external):
-    - provider-A: HEALTHY (last checked 2min ago)
-    - provider-B: HEALTHY (last checked 2min ago)
-    - provider-C: HEALTHY (last checked 2min ago)"""
+  Upstream Callers (services that call auth-service):
+  ├── api-gateway       [all authenticated /api/* routes pass through auth-service]
+  ├── order-service     [validates user tokens before processing orders]
+  └── payment-service   [validates tokens for payment authorization]
+
+  Service Mesh (Istio):
+    mTLS:               enforced (STRICT mode)
+    Circuit Breaker:    CLOSED (error threshold 50%, window 60s)
+    Retry Policy:       2 retries, 25ms/100ms/250ms backoff
+    Timeout:            2000ms per request"""
 
 # Config reveals the critical info: claims_validation_mode changed, legacy
 # fallback disabled. This is where provider-B's non-standard claim becomes
 # relevant. But the agent has to READ this and connect the dots.
 _AUTH_CONFIG = """\
-Service: auth-service -- Runtime Configuration
+auth-service/config.yaml — Runtime Configuration (mounted via ConfigMap auth-svc-config-v143)
 
-  Canary Configuration:
-    canary_enabled: true
-    canary_version: v5.1.0-canary
-    canary_traffic_pct: 10
-    canary_pod_selector: "app=auth-service,track=canary"
-    canary_auto_promote: true
-    canary_promote_after: 7200
-    canary_error_threshold: 0.01
-    canary_rollback_on_breach: false
+  canary:
+    enabled: true
+    version: v5.1.0-canary
+    traffic_pct: 10
+    pod_selector: "app=auth-service,track=canary"
+    auto_promote_after: 7200s       # 2 hours
+    error_threshold: 0.01           # 1% error rate max for promotion
+    rollback_on_breach: false       # manual rollback required
 
-  Token Validation Config:
+  token_validation:
+    claims_validation_mode: strict     # ← changed from "permissive" in v5.1.0
+    nested_claims_support: true        # ← NEW in v5.1.0
+    legacy_parser_fallback: false      # ← DISABLED in v5.1.0 (was: true)
     token_cache_ttl_sec: 300
     max_token_age_sec: 3600
     supported_providers: [provider-A, provider-B, provider-C]
-    claims_validation_mode: "strict"   # changed in v5.1.0 from "permissive"
-    nested_claims_support: true        # new in v5.1.0
-    legacy_parser_fallback: false      # disabled in v5.1.0 (was true in v5.0.4)
 
-  Provider Token Formats:
-    provider-A: standard JWT (RFC 7519 compliant)
-    provider-B: JWT with non-standard nested_permissions in realm_access claim
-    provider-C: standard JWT (RFC 7519 compliant)
-
-  Rate Limiting:
+  rate_limiting:
     per_provider_rps_limit: 800
     global_rps_limit: 3000
     burst_allowance: 1.5x
 
-  Circuit Breaker:
+  circuit_breaker:
     enabled: true
     error_threshold_pct: 50
     window_sec: 60
     half_open_after_sec: 30
-    state: CLOSED"""
+    state: CLOSED
+
+  --- DIFF from v5.0.4 (stable) → v5.1.0 (canary) ---
+  - claims_validation_mode: permissive
+  + claims_validation_mode: strict
+  + nested_claims_support: true
+  - legacy_parser_fallback: true
+  + legacy_parser_fallback: false
+
+  Known compatibility notes (from internal wiki, last updated 2024-02-15):
+    - provider-B uses non-standard nested_permissions inside realm_access claim
+    - Old parser (legacy_parser.go) handled this gracefully via fallback path
+    - New claims-validator v3 rejects non-RFC-compliant nested structures by default
+    - This was documented in AUTHSVC-4421 but not flagged during PR #2341 review"""
 
 _ORDER_LOGS = """\
-[2024-03-15T14:33:01Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_91823 status=500 upstream=auth-service retry=1/3
-[2024-03-15T14:33:01Z] INFO  order-service/auth_client.go:72  auth validation ok on retry user_id=usr_91823 (retried to different pod)
-[2024-03-15T14:33:02Z] INFO  order-service/handler.go:134 order created order_id=ord_88291 user_id=usr_44192 total=42.99
-[2024-03-15T14:33:03Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_67234 status=500 upstream=auth-service retry=1/3
-[2024-03-15T14:33:03Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_67234 status=500 upstream=auth-service retry=2/3
-[2024-03-15T14:33:04Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_67234 status=500 upstream=auth-service retry=3/3
-[2024-03-15T14:33:04Z] ERROR order-service/handler.go:141 order creation failed user_id=usr_67234 error="upstream auth-service returned 500 after 3 retries"
-[2024-03-15T14:33:05Z] INFO  order-service/handler.go:134 order created order_id=ord_88292 user_id=usr_55301 total=18.50
-[2024-03-15T14:33:06Z] INFO  order-service/handler.go:134 order created order_id=ord_88293 user_id=usr_33918 total=127.00
-[2024-03-15T14:33:07Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_82156 status=500 upstream=auth-service retry=1/3
-[2024-03-15T14:33:07Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_82156 status=500 upstream=auth-service retry=2/3
-[2024-03-15T14:33:07Z] WARN  order-service/auth_client.go:78  auth validation ok on retry 3 user_id=usr_82156
-[2024-03-15T14:33:08Z] INFO  order-service/handler.go:134 order created order_id=ord_88294 user_id=usr_82156 total=65.20
-[2024-03-15T14:33:09Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_16392 status=500 upstream=auth-service retry=1/3
-[2024-03-15T14:33:09Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_16392 status=500 upstream=auth-service retry=2/3
-[2024-03-15T14:33:10Z] ERROR order-service/auth_client.go:67  auth validation failed user_id=usr_16392 status=500 upstream=auth-service retry=3/3
-[2024-03-15T14:33:10Z] ERROR order-service/handler.go:141 order creation failed user_id=usr_16392 error="upstream auth-service returned 500 after 3 retries\""""
+2024-03-15T14:33:01.117Z ERROR [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_91823 status=500 upstream=auth-service \
+retry=1/3 traceId=trace-o1a2b3 requestId=req-ord001 spanId=span-o101
+2024-03-15T14:33:01.498Z INFO  [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation succeeded on retry userId=usr_91823 retryAttempt=2 \
+(routed to different pod) traceId=trace-o1a2b3 requestId=req-ord001 spanId=span-o102
+2024-03-15T14:33:02.204Z INFO  [order-svc-7d8e9f] c.a.order.handler.OrderHandler - \
+Order created orderId=ord_88291 userId=usr_44192 total=42.99 currency=USD \
+paymentMethod=card_visa latency_ms=184 traceId=trace-o2b3c4 requestId=req-ord002
+2024-03-15T14:33:03.087Z ERROR [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_67234 status=500 upstream=auth-service \
+retry=1/3 traceId=trace-o3c4d5 requestId=req-ord003 spanId=span-o201
+2024-03-15T14:33:03.401Z ERROR [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_67234 status=500 upstream=auth-service \
+retry=2/3 traceId=trace-o3c4d5 requestId=req-ord003 spanId=span-o202
+2024-03-15T14:33:04.012Z ERROR [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_67234 status=500 upstream=auth-service \
+retry=3/3 traceId=trace-o3c4d5 requestId=req-ord003 spanId=span-o203
+2024-03-15T14:33:04.015Z ERROR [order-svc-7d8e9f] c.a.order.handler.OrderHandler - \
+Order creation failed userId=usr_67234 error="upstream auth-service returned 500 after \
+3 retries" traceId=trace-o3c4d5 requestId=req-ord003 spanId=span-o204 httpStatus=502
+2024-03-15T14:33:05.338Z INFO  [order-svc-a1b2c3] c.a.order.handler.OrderHandler - \
+Order created orderId=ord_88292 userId=usr_55301 total=18.50 currency=USD \
+paymentMethod=card_mastercard latency_ms=162 traceId=trace-o4d5e6 requestId=req-ord004
+2024-03-15T14:33:06.204Z INFO  [order-svc-7d8e9f] c.a.order.handler.OrderHandler - \
+Order created orderId=ord_88293 userId=usr_33918 total=127.00 currency=USD \
+paymentMethod=paypal latency_ms=201 traceId=trace-o5e6f7 requestId=req-ord005
+2024-03-15T14:33:07.087Z ERROR [order-svc-a1b2c3] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_82156 status=500 upstream=auth-service \
+retry=1/3 traceId=trace-o6f708 requestId=req-ord006 spanId=span-o301
+2024-03-15T14:33:07.401Z ERROR [order-svc-a1b2c3] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_82156 status=500 upstream=auth-service \
+retry=2/3 traceId=trace-o6f708 requestId=req-ord006 spanId=span-o302
+2024-03-15T14:33:07.812Z WARN  [order-svc-a1b2c3] c.a.order.client.AuthClient - \
+Auth validation succeeded on retry userId=usr_82156 retryAttempt=3 \
+traceId=trace-o6f708 requestId=req-ord006 spanId=span-o303
+2024-03-15T14:33:08.204Z INFO  [order-svc-a1b2c3] c.a.order.handler.OrderHandler - \
+Order created orderId=ord_88294 userId=usr_82156 total=65.20 currency=USD \
+paymentMethod=card_visa latency_ms=340 traceId=trace-o6f708 requestId=req-ord006
+2024-03-15T14:33:09.087Z ERROR [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_16392 status=500 upstream=auth-service \
+retry=1/3 traceId=trace-o7a819 requestId=req-ord007 spanId=span-o401
+2024-03-15T14:33:09.401Z ERROR [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_16392 status=500 upstream=auth-service \
+retry=2/3 traceId=trace-o7a819 requestId=req-ord007 spanId=span-o402
+2024-03-15T14:33:10.012Z ERROR [order-svc-7d8e9f] c.a.order.client.AuthClient - \
+Auth validation failed userId=usr_16392 status=500 upstream=auth-service \
+retry=3/3 traceId=trace-o7a819 requestId=req-ord007 spanId=span-o403
+2024-03-15T14:33:10.015Z ERROR [order-svc-7d8e9f] c.a.order.handler.OrderHandler - \
+Order creation failed userId=usr_16392 error="upstream auth-service returned 500 after \
+3 retries" traceId=trace-o7a819 requestId=req-ord007 spanId=span-o404 httpStatus=502"""
 
 _ORDER_METRICS = """\
-Service: order-service
-  p50_latency_ms: 180
-  p99_latency_ms: 900
-  error_rate_5xx: 0.072
-  request_rate_rps: 850
-  cpu_utilization_pct: 32.4
-  memory_utilization_pct: 38.1
+Service: order-service (prod-us-east-1)
 
-  Error Breakdown:
-    auth_validation_failures: 68%
-    database_errors: 0%
-    internal_errors: 2%
-    timeout_errors: 30%
+  Aggregate Metrics (last 15m, Prometheus):
+    http_requests_total:           850 req/s
+    http_request_duration_seconds:
+      p50:                         180ms
+      p99:                         900ms       (baseline: 250ms) ← ELEVATED
+    http_requests_errors_total:
+      5xx_rate:                    0.072       (baseline: 0.003) ← ELEVATED
+    process_cpu_seconds_total:     32.4%
+    process_resident_memory_bytes: 1,562 MB / 4,096 MB limit (38.1%)
 
-  Dependency Health (as seen by order-service):
-    auth-service: DEGRADED (intermittent 500s)
-    database: HEALTHY
-    payment-service: HEALTHY"""
+  Error Breakdown (last 15m):
+    auth_validation_failures:      68%   ← upstream auth-service 500s
+    timeout_errors:                30%   ← auth retry timeouts
+    internal_errors:               2%    (nominal baseline)
+    database_errors:               0%
+
+  Dependency Health (as observed by order-service via circuit breakers):
+    auth-service:   DEGRADED (envoy reporting intermittent 500s, circuit: HALF_OPEN)
+    database:       HEALTHY  (circuit: CLOSED, latency p99: 8ms)
+    payment-service: HEALTHY (circuit: CLOSED, latency p99: 95ms)"""
 
 _API_GATEWAY_LOGS = """\
-[2024-03-15T14:34:01Z] WARN  api-gateway/proxy.go:201 upstream error: status=500 service=auth-service request_id=req_a8f21 path=/api/v2/orders
-[2024-03-15T14:34:01Z] INFO  api-gateway/proxy.go:189 request_id=req_b2c43 path=/api/v2/users/profile status=200 latency_ms=62
-[2024-03-15T14:34:02Z] INFO  api-gateway/proxy.go:189 request_id=req_d4e65 path=/api/v2/search status=200 latency_ms=85
-[2024-03-15T14:34:02Z] WARN  api-gateway/proxy.go:201 upstream error: status=500 service=auth-service request_id=req_f6g87 path=/api/v2/payments
-[2024-03-15T14:34:03Z] INFO  api-gateway/proxy.go:189 request_id=req_h8i09 path=/api/v2/orders status=200 latency_ms=340
-[2024-03-15T14:34:03Z] INFO  api-gateway/proxy.go:189 request_id=req_j0k12 path=/api/v2/users/settings status=200 latency_ms=55
-[2024-03-15T14:34:04Z] ERROR api-gateway/proxy.go:215 request_id=req_l2m34 path=/api/v2/orders status=502 error="auth-service retries exhausted"
-[2024-03-15T14:34:04Z] INFO  api-gateway/proxy.go:189 request_id=req_n4o56 path=/api/v2/recommendations status=200 latency_ms=210
-[2024-03-15T14:34:05Z] INFO  api-gateway/proxy.go:189 request_id=req_p6q78 path=/api/v2/search status=200 latency_ms=79
-[2024-03-15T14:34:05Z] INFO  api-gateway/proxy.go:189 request_id=req_r8s90 path=/api/v2/analytics/events status=200 latency_ms=42
-[2024-03-15T14:34:06Z] WARN  api-gateway/proxy.go:201 upstream error: status=500 service=auth-service request_id=req_t1u23 path=/api/v2/orders
-[2024-03-15T14:34:06Z] INFO  api-gateway/proxy.go:189 request_id=req_v4w56 path=/api/v2/billing/invoices status=200 latency_ms=95"""
+2024-03-15T14:34:01.117Z WARN  [gw-prod-5a6b7c] c.a.gateway.proxy.UpstreamHandler - \
+Upstream error status=500 service=auth-service requestId=req_a8f21 \
+path=/api/v2/orders method=POST clientIp=10.42.8.91 traceId=trace-gw01a
+2024-03-15T14:34:01.498Z INFO  [gw-prod-5a6b7c] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_b2c43 path=/api/v2/users/profile method=GET \
+status=200 latency_ms=62 upstream=user-service clientIp=10.42.12.44 traceId=trace-gw02b
+2024-03-15T14:34:02.204Z INFO  [gw-prod-8d9e0f] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_d4e65 path=/api/v2/search method=GET \
+status=200 latency_ms=85 upstream=search-service clientIp=10.42.5.18 traceId=trace-gw03c
+2024-03-15T14:34:02.601Z WARN  [gw-prod-5a6b7c] c.a.gateway.proxy.UpstreamHandler - \
+Upstream error status=500 service=auth-service requestId=req_f6g87 \
+path=/api/v2/payments method=POST clientIp=10.42.9.73 traceId=trace-gw04d
+2024-03-15T14:34:03.087Z INFO  [gw-prod-8d9e0f] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_h8i09 path=/api/v2/orders method=GET \
+status=200 latency_ms=340 upstream=order-service clientIp=10.42.11.22 traceId=trace-gw05e
+2024-03-15T14:34:03.498Z INFO  [gw-prod-5a6b7c] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_j0k12 path=/api/v2/users/settings method=GET \
+status=200 latency_ms=55 upstream=user-service clientIp=10.42.7.88 traceId=trace-gw06f
+2024-03-15T14:34:04.204Z ERROR [gw-prod-8d9e0f] c.a.gateway.proxy.UpstreamHandler - \
+Request failed requestId=req_l2m34 path=/api/v2/orders method=POST \
+status=502 error="auth-service retries exhausted (3/3)" \
+clientIp=10.42.14.56 traceId=trace-gw07a upstreamLatency_ms=2012
+2024-03-15T14:34:04.601Z INFO  [gw-prod-5a6b7c] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_n4o56 path=/api/v2/recommendations method=GET \
+status=200 latency_ms=210 upstream=recommendation-service clientIp=10.42.3.91 traceId=trace-gw08b
+2024-03-15T14:34:05.087Z INFO  [gw-prod-8d9e0f] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_p6q78 path=/api/v2/search method=GET \
+status=200 latency_ms=79 upstream=search-service clientIp=10.42.6.44 traceId=trace-gw09c
+2024-03-15T14:34:05.498Z INFO  [gw-prod-5a6b7c] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_r8s90 path=/api/v2/analytics/events method=POST \
+status=200 latency_ms=42 upstream=analytics-service clientIp=10.42.10.12 traceId=trace-gw10d
+2024-03-15T14:34:06.204Z WARN  [gw-prod-8d9e0f] c.a.gateway.proxy.UpstreamHandler - \
+Upstream error status=500 service=auth-service requestId=req_t1u23 \
+path=/api/v2/orders method=POST clientIp=10.42.8.33 traceId=trace-gw11e
+2024-03-15T14:34:06.601Z INFO  [gw-prod-5a6b7c] c.a.gateway.proxy.UpstreamHandler - \
+Request completed requestId=req_v4w56 path=/api/v2/billing/invoices method=GET \
+status=200 latency_ms=95 upstream=billing-service clientIp=10.42.13.77 traceId=trace-gw12f"""
 
 _API_GATEWAY_METRICS = """\
-Service: api-gateway
-  p50_latency_ms: 120
-  p95_latency_ms: 680
-  p99_latency_ms: 1200
-  error_rate_5xx: 0.081
-  request_rate_rps: 12000
-  cpu_utilization_pct: 45.2
-  memory_utilization_pct: 40.8
+Service: api-gateway (prod-us-east-1) — Envoy front-proxy
 
-  Error Breakdown by Upstream:
-    auth-service: 95%
-    order-service: 3%
-    payment-service: 2%
-    user-service: 0%
-    search-service: 0%
-    billing-service: 0%
-    analytics-service: 0%"""
+  Aggregate Metrics (last 15m, Prometheus):
+    envoy_http_downstream_rq_total:   12,000 req/s
+    http_request_duration_seconds:
+      p50:                            120ms
+      p95:                            680ms
+      p99:                            1,200ms    (baseline: 350ms) ← ELEVATED
+    envoy_http_downstream_rq_5xx:     0.081      (baseline: 0.004) ← ELEVATED
+    process_cpu_seconds_total:        45.2%
+    process_resident_memory_bytes:    3,312 MB / 8,192 MB limit (40.4%)
+
+  Error Attribution by Upstream (envoy cluster stats):
+    auth-service:       95.2%    ← PRIMARY SOURCE
+    order-service:      3.1%     (cascading from auth-service)
+    payment-service:    1.7%     (auth pre-check failures)
+    user-service:       0.0%
+    search-service:     0.0%
+    billing-service:    0.0%
+    analytics-service:  0.0%
+    recommendation-svc: 0.0%
+
+  Rate Limiting:
+    global_rps_limit:   18,000   (updated via config-service at 14:05Z)
+    current_rps:        12,000
+    throttled_requests: 0"""
 
 _API_GATEWAY_DEPLOYMENTS = """\
-Deployment History for api-gateway:
-  v3.8.2 (current) -- deployed 2024-03-08T12:00:00Z (7 days ago)
-    Changes: "Upgrade HTTP/2 multiplexing, minor header parsing fix"
-    Status: STABLE -- no recent changes"""
+Deployment History: api-gateway (prod-us-east-1)
+
+  ┌─ STABLE (current) ───────────────────────────────────────────────────
+  │ Version:    v3.8.2
+  │ Deployed:   2024-03-08T12:00:00Z (7 days ago)
+  │ Triggered:  ci-bot via PR #2187
+  │ Commit:     f1e2d3c "upgrade HTTP/2 multiplexing, minor header parsing fix"
+  │ CI:         ✓ unit tests | ✓ integration | ✓ load test (50K rps)
+  │ Image:      registry.internal/api-gateway:v3.8.2@sha256:c4d5e6f7...
+  │ Status:     STABLE — no recent changes
+  └───────────────────────────────────────────────────────────────────────
+
+  Note: Config-service pushed rate-limit update at 14:05Z (v142→v143),
+        but this was a rate-limit increase only (15K→18K rps), no behavioral change."""
 
 _RECOMMENDATION_LOGS = """\
-[2024-03-15T14:28:00Z] INFO  recommendation-service/ml_pipeline.go:234 starting daily model retraining batch (scheduled cron: 0 14 * * *)
-[2024-03-15T14:28:01Z] INFO  recommendation-service/ml_pipeline.go:240 loading training data from data-lake: 2.3M user interactions (last 7 days)
-[2024-03-15T14:28:02Z] INFO  recommendation-service/ml_pipeline.go:256 feature extraction started, estimated duration: 25 min
-[2024-03-15T14:28:15Z] INFO  recommendation-service/ml_pipeline.go:278 feature extraction progress: 12% (280K/2.3M records)
-[2024-03-15T14:29:00Z] WARN  recommendation-service/resource_monitor.go:45 CPU utilization at 85%, approaching autoscale threshold (90%)
-[2024-03-15T14:30:00Z] WARN  recommendation-service/resource_monitor.go:45 CPU utilization at 92%, autoscale threshold breached
-[2024-03-15T14:30:01Z] INFO  recommendation-service/autoscaler.go:78 HPA triggered: scaling from 3 to 5 replicas (target CPU: 70%)
-[2024-03-15T14:30:02Z] INFO  recommendation-service/autoscaler.go:92 new pods recommendation-svc-d7e8f, recommendation-svc-g9h0i starting
-[2024-03-15T14:31:00Z] INFO  recommendation-service/autoscaler.go:105 pods ready, traffic rebalancing in progress
-[2024-03-15T14:32:00Z] INFO  recommendation-service/health.go:45 health check passed, serving normally, p99_latency=195ms
-[2024-03-15T14:33:00Z] INFO  recommendation-service/ml_pipeline.go:278 feature extraction progress: 48% (1.1M/2.3M records)
-[2024-03-15T14:34:00Z] INFO  recommendation-service/resource_monitor.go:45 CPU utilization at 71% (post-scale), within target range"""
+2024-03-15T14:28:00.204Z INFO  [rec-svc-a4b5c6] c.a.recommendation.pipeline.MLPipeline - \
+Starting daily model retraining batch jobId=ml-retrain-20240315 \
+schedule="0 14 * * *" model=collaborative-filtering-v4 traceId=trace-ml01
+2024-03-15T14:28:01.087Z INFO  [rec-svc-a4b5c6] c.a.recommendation.pipeline.DataLoader - \
+Loading training data from data-lake: 2.3M user interactions (last 7 days) \
+source=s3://ml-data-lake/interactions/ format=parquet traceId=trace-ml01
+2024-03-15T14:28:02.498Z INFO  [rec-svc-a4b5c6] c.a.recommendation.pipeline.FeatureExtractor - \
+Feature extraction started estimatedDuration=25min totalRecords=2,300,000 \
+features=[user_embedding,item_embedding,interaction_type,temporal_weight] traceId=trace-ml01
+2024-03-15T14:28:15.204Z INFO  [rec-svc-a4b5c6] c.a.recommendation.pipeline.FeatureExtractor - \
+Feature extraction progress: 12% (280K/2.3M records) elapsed=13s \
+throughput=21,538 records/sec memoryUsed=3,412MB traceId=trace-ml01
+2024-03-15T14:29:00.087Z WARN  [rec-svc-a4b5c6] c.a.recommendation.monitor.ResourceMonitor - \
+CPU utilization at 85.2%, approaching autoscale threshold (90%) \
+container=rec-svc-a4b5c6 node=ip-10-42-8-191 traceId=trace-ml01
+2024-03-15T14:30:00.204Z WARN  [rec-svc-a4b5c6] c.a.recommendation.monitor.ResourceMonitor - \
+CPU utilization at 92.3%, autoscale threshold breached \
+container=rec-svc-a4b5c6 node=ip-10-42-8-191 traceId=trace-ml01
+2024-03-15T14:30:01.087Z INFO  [rec-svc-a4b5c6] c.a.recommendation.autoscaler.HPAController - \
+HPA triggered: scaling from 3 to 5 replicas (targetCPU=70%, currentCPU=92.3%) \
+event=ScaleUp reason=CPUUtilizationAboveTarget traceId=trace-hpa01
+2024-03-15T14:30:02.498Z INFO  [rec-svc-a4b5c6] c.a.recommendation.autoscaler.HPAController - \
+New pods starting: rec-svc-d7e8f9, rec-svc-g0h1i2 \
+scheduledTo=[ip-10-42-9-44, ip-10-42-9-88] traceId=trace-hpa01
+2024-03-15T14:31:00.204Z INFO  [rec-svc-d7e8f9] c.a.recommendation.autoscaler.HPAController - \
+Pods ready, readiness probes passing, traffic rebalancing in progress \
+activeReplicas=5 traceId=trace-hpa01
+2024-03-15T14:32:00.087Z INFO  [rec-svc-a4b5c6] c.a.recommendation.health.HealthCheck - \
+Health check passed: serving normally p99_latency=195ms \
+requestRate=3,200rps errorRate=0.010 activeModel=cf-v4.2.1 traceId=trace-hc01
+2024-03-15T14:33:00.498Z INFO  [rec-svc-a4b5c6] c.a.recommendation.pipeline.FeatureExtractor - \
+Feature extraction progress: 48% (1.1M/2.3M records) elapsed=5m \
+throughput=19,841 records/sec memoryUsed=4,891MB traceId=trace-ml01
+2024-03-15T14:34:00.204Z INFO  [rec-svc-a4b5c6] c.a.recommendation.monitor.ResourceMonitor - \
+CPU utilization at 71.2% (post-scale), within target range \
+replicas=5 node_spread=[ip-10-42-8-191, ip-10-42-9-44, ip-10-42-9-88] traceId=trace-ml01"""
 
 _RECOMMENDATION_METRICS = """\
-Service: recommendation-service
-  p50_latency_ms: 95
-  p99_latency_ms: 200
-  error_rate_5xx: 0.010
-  request_rate_rps: 3200
-  cpu_utilization_pct: 92.3
-  memory_utilization_pct: 55.1
-  replicas: 5 (scaled from 3 at 14:30Z)
+Service: recommendation-service (prod-us-east-1)
 
-  Autoscaler Status:
-    trigger: CPU > 90% for 60s
-    current_state: SCALING_COMPLETE
-    target_cpu: 70%
-    projected_cpu_after_scale: 55%"""
+  Aggregate Metrics (last 15m, Prometheus):
+    http_requests_total:           3,200 req/s
+    http_request_duration_seconds:
+      p50:                         95ms
+      p99:                         200ms      (baseline: 180ms — slight elevation during retrain)
+    http_requests_errors_total:
+      5xx_rate:                    0.010      (nominal — these are timeout-on-retrain, self-healing)
+    process_cpu_seconds_total:     92.3%      ← HIGH (ML retraining job, autoscaler responding)
+    process_resident_memory_bytes: 4,891 MB / 8,192 MB limit (59.7%)
+    active_replicas:               5 (scaled from 3 at 14:30Z)
+
+  Autoscaler Status (HPA):
+    trigger:               cpu > 90% sustained for 60s
+    current_state:         SCALING_COMPLETE
+    target_cpu:            70%
+    current_cpu:           71.2% (post-scale)
+    min_replicas:          3
+    max_replicas:          8
+    last_scale_event:      2024-03-15T14:30:01Z (5 min ago)
+    cooldown_remaining:    55s"""
 
 _RECOMMENDATION_DEPLOYMENTS = """\
-Deployment History for recommendation-service:
-  v2.14.0 (current) -- deployed 2024-03-05T09:00:00Z (10 days ago)
-    Changes: "Updated feature store connector, improved caching for cold-start users"
-    Status: STABLE -- no recent changes
-  v2.13.8 -- deployed 2024-02-25T16:00:00Z
-    Changes: "Bug fix: handle missing user preference data gracefully"
-    Status: SUPERSEDED"""
+Deployment History: recommendation-service (prod-us-east-1)
+
+  ┌─ STABLE (current) ───────────────────────────────────────────────────
+  │ Version:    v2.14.0
+  │ Deployed:   2024-03-05T09:00:00Z (10 days ago)
+  │ Triggered:  ci-bot via PR #1945
+  │ Commit:     a8b9c0d "updated feature store connector, improved cold-start caching"
+  │ CI:         ✓ unit tests | ✓ integration | ✓ model accuracy regression
+  │ Image:      registry.internal/recommendation-service:v2.14.0@sha256:b1c2d3e4...
+  │ Status:     STABLE — no recent changes
+  └───────────────────────────────────────────────────────────────────────
+
+  Previous:
+    v2.13.8 — deployed 2024-02-25T16:00:00Z
+      Commit: d4e5f6a "handle missing user preference data gracefully"
+      Status: SUPERSEDED
+
+  Note: Daily ML retraining job runs at 14:00 UTC via CronJob (not a code deployment).
+        Current job started at 14:28Z, expected completion ~14:55Z. CPU spike is expected."""
 
 # RED HERRING: database slow query
 _DATABASE_LOGS = """\
-[2024-03-15T14:10:22Z] INFO  postgresql/log: checkpoint starting: time
-[2024-03-15T14:10:23Z] INFO  postgresql/log: checkpoint complete: wrote 847 buffers (0.6%)
-[2024-03-15T14:14:45Z] WARN  postgresql/log: slow query: duration=852ms statement=SELECT u.id, u.email, u.created_at, p.plan_type, p.renewal_date, t.total_orders, t.total_revenue FROM users u JOIN plans p ON u.plan_id = p.id JOIN (SELECT user_id, COUNT(*) as total_orders, SUM(amount) as total_revenue FROM orders GROUP BY user_id) t ON u.id = t.user_id WHERE u.last_active > NOW() - INTERVAL '30 days' ORDER BY t.total_revenue DESC LIMIT 10000
-[2024-03-15T14:14:46Z] INFO  postgresql/log: query originated from analytics-service (scheduled daily report, cron 14:14 UTC)
-[2024-03-15T14:30:00Z] INFO  postgresql/log: automatic vacuum of table "auth_sessions": 1204 rows removed
-[2024-03-15T14:32:00Z] INFO  postgresql/log: checkpoint starting: time
-[2024-03-15T14:32:01Z] INFO  postgresql/log: checkpoint complete: wrote 312 buffers (0.2%)
-[2024-03-15T14:33:00Z] INFO  postgresql/log: slow query: duration=45ms statement=SELECT * FROM token_revocations WHERE provider=$1 AND expires_at > NOW()
-[2024-03-15T14:34:00Z] INFO  postgresql/log: connections: 142/500 active, 0 waiting"""
+2024-03-15T14:10:22.004Z INFO  [postgres-primary-0] LOG:  checkpoint starting: time
+2024-03-15T14:10:23.117Z INFO  [postgres-primary-0] LOG:  checkpoint complete: \
+wrote 847 buffers (0.6%); 0 WAL file(s) added, 0 removed, 2 recycled; \
+write=1.012 s, sync=0.084 s, total=1.113 s; sync files=42, longest=0.014 s, average=0.002 s; \
+distance=4218 kB, estimate=5120 kB
+2024-03-15T14:14:45.891Z WARN  [postgres-primary-0] LOG:  duration: 852.441 ms  statement: \
+SELECT u.id, u.email, u.created_at, p.plan_type, p.renewal_date, \
+t.total_orders, t.total_revenue \
+FROM users u \
+JOIN plans p ON u.plan_id = p.id \
+JOIN (SELECT user_id, COUNT(*) as total_orders, SUM(amount) as total_revenue \
+FROM orders WHERE created_at > NOW() - INTERVAL '30 days' GROUP BY user_id) t ON u.id = t.user_id \
+WHERE u.last_active > NOW() - INTERVAL '30 days' \
+ORDER BY t.total_revenue DESC LIMIT 10000
+2024-03-15T14:14:46.204Z INFO  [postgres-primary-0] LOG:  query originated from \
+analytics-service (10.42.4.22:54312) — scheduled daily report, cron 14:14 UTC \
+application_name=analytics-batch-reporter
+2024-03-15T14:30:00.087Z INFO  [postgres-primary-0] LOG:  automatic vacuum of table \
+"public.auth_sessions": index scans: 1 \
+pages: 0 removed, 4218 remain, 0 skipped due to pins, 0 skipped frozen \
+tuples: 1204 removed, 284721 remain, 0 are dead but not yet removable
+2024-03-15T14:32:00.204Z INFO  [postgres-primary-0] LOG:  checkpoint starting: time
+2024-03-15T14:32:01.087Z INFO  [postgres-primary-0] LOG:  checkpoint complete: \
+wrote 312 buffers (0.2%); 0 WAL file(s) added, 0 removed, 1 recycled; \
+write=0.812 s, sync=0.041 s, total=0.883 s
+2024-03-15T14:33:00.498Z INFO  [postgres-primary-0] LOG:  duration: 45.221 ms  statement: \
+SELECT * FROM token_revocations WHERE provider=$1 AND expires_at > NOW()
+2024-03-15T14:34:00.204Z INFO  [postgres-primary-0] LOG:  connection stats: \
+142 active / 500 max / 0 waiting / 358 idle \
+oldest_transaction_age=0s autovacuum_workers=1/3"""
 
 _DATABASE_METRICS = """\
-Service: database (PostgreSQL 15.4)
-  p50_latency_ms: 4
-  p99_latency_ms: 12
-  error_rate: 0.001
-  connections_active: 142
-  connections_max: 500
-  cpu_utilization_pct: 48.0
-  memory_utilization_pct: 52.3
-  disk_io_pct: 28.0
-  replication_lag_ms: 0
-  lock_waits: 0
-  deadlocks_last_hour: 0
-  slow_queries_last_15min: 1 (852ms, analytics daily report)"""
+Service: database (PostgreSQL 15.4, prod-us-east-1)
+
+  Aggregate Metrics (last 15m, pg_stat / node_exporter):
+    pg_stat_activity_count:       142 active / 500 max_connections
+    pg_stat_activity_waiting:     0
+    pg_query_duration_seconds:
+      p50:                        4ms
+      p99:                        12ms       (nominal)
+    pg_stat_bgwriter_buffers:     312 (last checkpoint)
+    pg_stat_user_tables_seq_scan: 0 (no seq scans — indexes healthy)
+    node_cpu_seconds_total:       48.0%
+    node_memory_MemUsed_bytes:    52.3%       (26.2 GB / 50 GB)
+    node_disk_io_pct:             28.0%
+    pg_replication_lag_seconds:   0.000       (synchronous replica)
+    pg_locks_count:               0 exclusive / 4 shared (nominal)
+    pg_stat_activity_deadlocks:   0 (last hour)
+    slow_queries_15m:             1 (852ms — analytics daily report at 14:14Z, expected)
+
+  Replication:
+    primary:    postgres-primary-0 (10.42.2.10)
+    replica:    postgres-replica-0 (10.42.2.11) — lag: 0ms — SYNC
+    backup:     last full backup 2024-03-15T06:00:00Z (8h ago) — OK"""
 
 _CACHE_LOGS = """\
-[2024-03-15T14:32:00Z] INFO  redis/server.go:312 memory usage: 1.2GB / 4GB (28%)
-[2024-03-15T14:33:00Z] INFO  redis/server.go:318 key evictions last minute: 0
-[2024-03-15T14:34:00Z] INFO  redis/server.go:324 hit rate: 94.2% (8412 hits / 8929 total)"""
+2024-03-15T14:32:00.204Z INFO  [redis-primary-0] c.a.cache.server.RedisServer - \
+Memory usage: 1.2GB / 4.0GB (28.4%) maxmemory_policy=allkeys-lru \
+connected_clients=89 blocked_clients=0 used_cpu_sys=8.21 used_cpu_user=4.18
+2024-03-15T14:33:00.087Z INFO  [redis-primary-0] c.a.cache.server.RedisServer - \
+Key evictions last 60s: 0 expired_keys=142 keyspace_hits=8412 keyspace_misses=517 \
+hit_rate=94.2% instantaneous_ops_per_sec=14,821
+2024-03-15T14:34:00.498Z INFO  [redis-primary-0] c.a.cache.server.RedisServer - \
+Replication: role=master connected_slaves=1 repl_offset=284712944 \
+slave0: ip=10.42.3.12 port=6379 state=online offset=284712944 lag=0"""
 
 _CACHE_METRICS = """\
-Service: cache (Redis 7.2)
-  latency_ms: 3
-  error_rate: 0.000
-  hit_rate_pct: 94.2
-  memory_utilization_pct: 28.0
-  connections_active: 89
-  evictions_per_min: 0
-  cpu_utilization_pct: 12.4"""
+Service: cache (Redis 7.2, prod-us-east-1)
+
+  Aggregate Metrics (last 15m, redis_exporter):
+    redis_commands_processed_total: 14,821 ops/s
+    redis_command_duration_seconds:
+      p50:                          0.4ms
+      p99:                          1.1ms     (nominal)
+    redis_keyspace_hits_ratio:      94.2%
+    redis_memory_used_bytes:        1.2 GB / 4.0 GB limit (28.4%)
+    redis_connected_clients:        89
+    redis_evicted_keys_total:       0 (last 15m)
+    redis_blocked_clients:          0
+    node_cpu_seconds_total:         12.4%
+    replication_lag_seconds:        0.000"""
 
 # RED HERRING: CDN DNS change (2 hours ago, resolved)
 _CDN_LOGS = """\
-[2024-03-15T12:15:00Z] INFO  cdn/config_manager.go:89 DNS configuration update applied: updated CNAME records for static.example.com
-[2024-03-15T12:15:01Z] INFO  cdn/config_manager.go:95 TTL propagation started (TTL=300s)
-[2024-03-15T12:20:00Z] INFO  cdn/config_manager.go:102 TTL propagation complete. All edge nodes updated.
-[2024-03-15T12:25:00Z] INFO  cdn/health.go:34 post-change health check: all edge nodes responding normally
-[2024-03-15T14:30:00Z] INFO  cdn/health.go:34 routine health check: OK, cache hit rate 98.7%"""
+2024-03-15T12:15:00.204Z INFO  [cdn-edge-mgr-01] c.a.cdn.config.DNSManager - \
+DNS configuration update applied: updated CNAME records for static.example.com \
+oldTarget=cdn-old.cloudfront.net newTarget=cdn-v2.cloudfront.net \
+changeId=C0RRJQ1B2EXXYZ propagation=global traceId=trace-cdn01
+2024-03-15T12:15:01.087Z INFO  [cdn-edge-mgr-01] c.a.cdn.config.DNSManager - \
+TTL propagation started (TTL=300s) edgeLocations=47 \
+expectedCompletion=2024-03-15T12:20:00Z traceId=trace-cdn01
+2024-03-15T12:20:00.498Z INFO  [cdn-edge-mgr-01] c.a.cdn.config.DNSManager - \
+TTL propagation complete. All 47 edge nodes updated. \
+verificationStatus=PASSED errors=0 traceId=trace-cdn01
+2024-03-15T12:25:00.204Z INFO  [cdn-edge-mgr-01] c.a.cdn.health.HealthCheck - \
+Post-change health check: all edge nodes responding normally \
+hitRate=98.7% avgLatency_ms=18 errorRate=0.001 traceId=trace-cdn02
+2024-03-15T14:30:00.087Z INFO  [cdn-edge-mgr-01] c.a.cdn.health.HealthCheck - \
+Routine health check: OK hitRate=98.7% avgLatency_ms=19 \
+bandwidthUtilization=34.2% traceId=trace-cdn03"""
 
 # RED HERRING: config-service pushed updates recently
 _CONFIG_SERVICE_LOGS = """\
-[2024-03-15T14:05:00Z] INFO  config-service/pusher.go:89 config push initiated by @platform-team
-[2024-03-15T14:05:01Z] INFO  config-service/pusher.go:95 pushing updated rate-limit configs to: api-gateway, order-service, payment-service, auth-service
-[2024-03-15T14:05:02Z] INFO  config-service/pusher.go:112 api-gateway acknowledged config update (rate_limit_global: 15000 -> 18000 rps)
-[2024-03-15T14:05:02Z] INFO  config-service/pusher.go:112 order-service acknowledged config update (rate_limit_per_user: 50 -> 60 rps)
-[2024-03-15T14:05:03Z] INFO  config-service/pusher.go:112 payment-service acknowledged config update (rate_limit_per_user: 30 -> 40 rps)
-[2024-03-15T14:05:03Z] INFO  config-service/pusher.go:112 auth-service acknowledged config update (rate_limit_global: 2500 -> 3000 rps)
-[2024-03-15T14:05:04Z] INFO  config-service/pusher.go:128 all 4 services acknowledged config push successfully
-[2024-03-15T14:05:04Z] INFO  config-service/pusher.go:134 config version bumped: v142 -> v143
-[2024-03-15T14:06:00Z] INFO  config-service/health.go:45 post-push health check: all target services report config v143 active
-[2024-03-15T14:34:00Z] INFO  config-service/health.go:45 routine health check: OK"""
+2024-03-15T14:05:00.204Z INFO  [cfg-svc-b2c3d4] c.a.config.pusher.ConfigPusher - \
+Config push initiated operator=@platform-team reason="rate-limit capacity increase" \
+changeId=cfg-push-20240315-001 etcd_revision=v142→v143 traceId=trace-cfg01
+2024-03-15T14:05:01.087Z INFO  [cfg-svc-b2c3d4] c.a.config.pusher.ConfigPusher - \
+Pushing updated rate-limit configs to targets=[api-gateway, order-service, \
+payment-service, auth-service] pushStrategy=sequential_with_ack \
+rollbackOnFailure=false traceId=trace-cfg01
+2024-03-15T14:05:02.204Z INFO  [cfg-svc-b2c3d4] c.a.config.pusher.ConfigPusher - \
+Target acknowledged: api-gateway configKey=rate_limit_global \
+oldValue=15000 newValue=18000 ackLatency_ms=42 traceId=trace-cfg01
+2024-03-15T14:05:02.601Z INFO  [cfg-svc-b2c3d4] c.a.config.pusher.ConfigPusher - \
+Target acknowledged: order-service configKey=rate_limit_per_user \
+oldValue=50 newValue=60 ackLatency_ms=38 traceId=trace-cfg01
+2024-03-15T14:05:03.087Z INFO  [cfg-svc-b2c3d4] c.a.config.pusher.ConfigPusher - \
+Target acknowledged: payment-service configKey=rate_limit_per_user \
+oldValue=30 newValue=40 ackLatency_ms=44 traceId=trace-cfg01
+2024-03-15T14:05:03.498Z INFO  [cfg-svc-b2c3d4] c.a.config.pusher.ConfigPusher - \
+Target acknowledged: auth-service configKey=rate_limit_global \
+oldValue=2500 newValue=3000 ackLatency_ms=41 traceId=trace-cfg01
+2024-03-15T14:05:04.204Z INFO  [cfg-svc-b2c3d4] c.a.config.pusher.ConfigPusher - \
+Push complete: all 4/4 services acknowledged successfully \
+totalDuration_ms=4201 configVersion=v143 traceId=trace-cfg01
+2024-03-15T14:05:04.498Z INFO  [cfg-svc-b2c3d4] c.a.config.audit.AuditLogger - \
+Audit log written: changeId=cfg-push-20240315-001 operator=@platform-team \
+targets=4 status=SUCCESS s3://audit-logs/config/2024/03/15/cfg-push-001.json
+2024-03-15T14:06:00.204Z INFO  [cfg-svc-b2c3d4] c.a.config.health.PostPushVerifier - \
+Post-push health check: all target services report config v143 active \
+verification=[api-gateway:OK, order-service:OK, payment-service:OK, auth-service:OK]
+2024-03-15T14:34:00.087Z INFO  [cfg-svc-b2c3d4] c.a.config.health.HealthCheck - \
+Routine health check: OK etcd_cluster=healthy leader=etcd-0 \
+configVersion=v143 lastPush=29m ago status=IDLE"""
 
 _CONFIG_SERVICE_METRICS = """\
-Service: config-service
-  p50_latency_ms: 12
-  p99_latency_ms: 35
-  error_rate_5xx: 0.000
-  request_rate_rps: 120
-  cpu_utilization_pct: 8.2
-  memory_utilization_pct: 18.0
-  last_push: 2024-03-15T14:05:04Z (30 min ago)
-  last_push_targets: api-gateway, order-service, payment-service, auth-service
-  last_push_status: SUCCESS
-  config_version: v143"""
+Service: config-service (prod-us-east-1)
+
+  Aggregate Metrics (last 15m, Prometheus):
+    http_requests_total:           120 req/s
+    http_request_duration_seconds:
+      p50:                         12ms
+      p99:                         35ms       (nominal)
+    http_requests_errors_total:
+      5xx_rate:                    0.000
+    process_cpu_seconds_total:     8.2%
+    process_resident_memory_bytes: 738 MB / 4,096 MB limit (18.0%)
+
+  Config Push Stats:
+    last_push:             2024-03-15T14:05:04Z (30 min ago)
+    last_push_targets:     api-gateway, order-service, payment-service, auth-service
+    last_push_status:      SUCCESS (all 4 targets acknowledged)
+    last_push_change:      rate-limit capacity increase
+    config_version:        v143
+    etcd_cluster_health:   HEALTHY (3/3 members)"""
 
 _CONFIG_SERVICE_DEPLOYMENTS = """\
-Deployment History for config-service:
-  v1.4.2 (current) -- deployed 2024-03-01T10:00:00Z (14 days ago)
-    Changes: "Added audit logging for config pushes"
-    Status: STABLE
+Deployment History: config-service (prod-us-east-1)
 
-  Recent Config Pushes (not code deployments):
-    2024-03-15T14:05:04Z: rate-limit config update to 4 services (v142->v143)
-    2024-03-14T09:00:00Z: feature-flag update to api-gateway (v141->v142)
-    2024-03-12T16:00:00Z: timeout config update to order-service (v140->v141)"""
+  ┌─ STABLE (current) ───────────────────────────────────────────────────
+  │ Version:    v1.4.2
+  │ Deployed:   2024-03-01T10:00:00Z (14 days ago)
+  │ Triggered:  ci-bot via PR #1812
+  │ Commit:     c2d3e4f "added audit logging for config pushes"
+  │ CI:         ✓ unit tests | ✓ integration | ✓ etcd compatibility
+  │ Image:      registry.internal/config-service:v1.4.2@sha256:d3e4f5a6...
+  │ Status:     STABLE
+  └───────────────────────────────────────────────────────────────────────
+
+  Recent Config Pushes (these are data changes, not code deployments):
+    2024-03-15T14:05:04Z: rate-limit config to 4 services (v142→v143) — SUCCESS
+    2024-03-14T09:00:00Z: feature-flag update to api-gateway (v141→v142) — SUCCESS
+    2024-03-12T16:00:00Z: timeout config update to order-service (v140→v141) — SUCCESS"""
 
 # RED HERRING: payment-service cert renewal warning
 _PAYMENT_SERVICE_LOGS = """\
-[2024-03-15T14:15:00Z] WARN  payment-service/tls_manager.go:78 TLS certificate for payment-gateway.internal will expire in 14 days (2024-03-29T00:00:00Z). Auto-renewal scheduled for 2024-03-22T00:00:00Z.
-[2024-03-15T14:15:01Z] WARN  payment-service/tls_manager.go:82 mutual TLS cert for payment-processor.external renewal pending, current cert valid until 2024-03-29
-[2024-03-15T14:32:00Z] INFO  payment-service/handler.go:78 payment processed payment_id=pay_44291 user_id=usr_55301 amount=18.50 status=SUCCESS
-[2024-03-15T14:33:00Z] INFO  payment-service/handler.go:78 payment processed payment_id=pay_44292 user_id=usr_33918 amount=127.00 status=SUCCESS
-[2024-03-15T14:34:00Z] WARN  payment-service/handler.go:91 payment auth pre-check failed user_id=usr_82156 -- upstream auth-service 500 (will retry)
-[2024-03-15T14:34:01Z] INFO  payment-service/handler.go:78 payment processed payment_id=pay_44293 user_id=usr_82156 amount=65.20 status=SUCCESS (retry ok)
-[2024-03-15T14:34:30Z] INFO  payment-service/handler.go:78 payment processed payment_id=pay_44294 user_id=usr_28471 amount=22.00 status=SUCCESS"""
+2024-03-15T14:15:00.204Z WARN  [pay-svc-c3d4e5] c.a.payment.tls.CertificateManager - \
+TLS certificate for payment-gateway.internal expires in 14 days (2024-03-29T00:00:00Z) \
+serialNumber=3A:7B:2C:8D:4E:9F issuer=internal-ca-prod autoRenewal=scheduled \
+renewalDate=2024-03-22T00:00:00Z jiraTicket=INFRA-9012 traceId=trace-pay01
+2024-03-15T14:15:01.087Z WARN  [pay-svc-c3d4e5] c.a.payment.tls.CertificateManager - \
+mTLS cert for payment-processor.external renewal pending \
+currentCert_validUntil=2024-03-29 autoRenewal=scheduled processor=stripe \
+traceId=trace-pay01
+2024-03-15T14:32:00.498Z INFO  [pay-svc-c3d4e5] c.a.payment.handler.PaymentHandler - \
+Payment processed paymentId=pay_44291 userId=usr_55301 amount=18.50 currency=USD \
+processor=stripe status=SUCCESS latency_ms=78 traceId=trace-pay02 \
+fraudScore=0.02 riskLevel=LOW
+2024-03-15T14:33:00.204Z INFO  [pay-svc-f6a7b8] c.a.payment.handler.PaymentHandler - \
+Payment processed paymentId=pay_44292 userId=usr_33918 amount=127.00 currency=USD \
+processor=stripe status=SUCCESS latency_ms=82 traceId=trace-pay03 \
+fraudScore=0.01 riskLevel=LOW
+2024-03-15T14:34:00.087Z WARN  [pay-svc-c3d4e5] c.a.payment.client.AuthClient - \
+Payment auth pre-check failed userId=usr_82156 upstream=auth-service \
+status=500 willRetry=true retryPolicy=exponential_backoff \
+traceId=trace-pay04 spanId=span-pay01
+2024-03-15T14:34:01.498Z INFO  [pay-svc-c3d4e5] c.a.payment.handler.PaymentHandler - \
+Payment processed paymentId=pay_44293 userId=usr_82156 amount=65.20 currency=USD \
+processor=stripe status=SUCCESS latency_ms=195 traceId=trace-pay04 \
+note="auth retry succeeded on attempt 2" fraudScore=0.03 riskLevel=LOW
+2024-03-15T14:34:30.204Z INFO  [pay-svc-f6a7b8] c.a.payment.handler.PaymentHandler - \
+Payment processed paymentId=pay_44294 userId=usr_28471 amount=22.00 currency=USD \
+processor=stripe status=SUCCESS latency_ms=74 traceId=trace-pay05 \
+fraudScore=0.01 riskLevel=LOW"""
 
 _PAYMENT_SERVICE_METRICS = """\
-Service: payment-service
-  p50_latency_ms: 85
-  p99_latency_ms: 120
-  error_rate_5xx: 0.005
-  request_rate_rps: 650
-  cpu_utilization_pct: 35.0
-  memory_utilization_pct: 40.0
-  tls_cert_expiry_days: 14
-  tls_auto_renewal: scheduled 2024-03-22"""
+Service: payment-service (prod-us-east-1) — PCI DSS compliant zone
+
+  Aggregate Metrics (last 15m, Prometheus):
+    http_requests_total:            650 req/s
+    http_request_duration_seconds:
+      p50:                          85ms
+      p99:                          120ms      (nominal)
+    http_requests_errors_total:
+      5xx_rate:                     0.005      (nominal — from auth pre-check retries)
+    process_cpu_seconds_total:      35.0%
+    process_resident_memory_bytes:  1,638 MB / 4,096 MB limit (40.0%)
+
+  TLS Certificate Status:
+    payment-gateway.internal:       valid (expires 2024-03-29, 14 days)
+    payment-processor.external:     valid (expires 2024-03-29, 14 days)
+    auto_renewal:                   scheduled 2024-03-22
+    pci_compliance_status:          COMPLIANT"""
 
 _PAYMENT_SERVICE_DEPLOYMENTS = """\
-Deployment History for payment-service:
-  v3.9.2 (current) -- deployed 2024-03-04T11:00:00Z (11 days ago)
-    Changes: "PCI compliance audit logging improvements"
-    Status: STABLE"""
+Deployment History: payment-service (prod-us-east-1)
+
+  ┌─ STABLE (current) ───────────────────────────────────────────────────
+  │ Version:    v3.9.2
+  │ Deployed:   2024-03-04T11:00:00Z (11 days ago)
+  │ Triggered:  ci-bot via PR #1901
+  │ Commit:     e4f5a6b "PCI compliance audit logging improvements"
+  │ CI:         ✓ unit tests | ✓ integration | ✓ PCI scan | ✓ security audit
+  │ Image:      registry.internal/payment-service:v3.9.2@sha256:f5a6b7c8...
+  │ Status:     STABLE
+  └───────────────────────────────────────────────────────────────────────"""
 
 # RED HERRING: search-service elevated cache miss rate
 _SEARCH_SERVICE_LOGS = """\
-[2024-03-15T14:30:00Z] INFO  search-service/cache.go:112 cache warm-up initiated after index rebuild (deployed v8.2.1 two days ago)
-[2024-03-15T14:30:01Z] WARN  search-service/cache.go:118 cache hit rate dropped: 95.2% -> 78.4% during warm-up phase
-[2024-03-15T14:30:02Z] INFO  search-service/cache.go:125 estimated warm-up completion: ~45 min (populating 12M entries)
-[2024-03-15T14:32:00Z] INFO  search-service/handler.go:56 search query="bluetooth headphones" results=142 latency_ms=112 cache=MISS
-[2024-03-15T14:32:30Z] INFO  search-service/handler.go:56 search query="usb-c cable" results=89 latency_ms=95 cache=MISS
-[2024-03-15T14:33:00Z] INFO  search-service/handler.go:56 search query="mechanical keyboard" results=234 latency_ms=81 cache=HIT
-[2024-03-15T14:33:30Z] INFO  search-service/cache.go:132 warm-up progress: 34% (4.1M/12M entries populated)
-[2024-03-15T14:34:00Z] INFO  search-service/handler.go:56 search query="wireless mouse" results=167 latency_ms=102 cache=MISS"""
+2024-03-15T14:30:00.204Z INFO  [search-svc-d4e5f6] c.a.search.cache.CacheWarmer - \
+Cache warm-up initiated after index rebuild (deployed v8.2.1 two days ago) \
+indexVersion=idx-20240313 totalEntries=12,000,000 estimatedDuration=45min \
+traceId=trace-srch01
+2024-03-15T14:30:01.087Z WARN  [search-svc-d4e5f6] c.a.search.cache.CacheWarmer - \
+Cache hit rate degraded during warm-up: 95.2% → 78.4% \
+reason=index_rebuild_invalidated_cache expectedRecovery=~45min \
+traceId=trace-srch01
+2024-03-15T14:30:02.498Z INFO  [search-svc-d4e5f6] c.a.search.cache.CacheWarmer - \
+Estimated warm-up completion: 2024-03-15T15:15:00Z (populating 12M entries) \
+currentProgress=0% populationRate=4,444 entries/sec traceId=trace-srch01
+2024-03-15T14:32:00.204Z INFO  [search-svc-e5f6a7] c.a.search.handler.SearchHandler - \
+Search completed query="bluetooth headphones" results=142 latency_ms=112 \
+cache=MISS index=products-v8 traceId=trace-srch02 userId=anon_44812
+2024-03-15T14:32:30.087Z INFO  [search-svc-d4e5f6] c.a.search.handler.SearchHandler - \
+Search completed query="usb-c cable" results=89 latency_ms=95 \
+cache=MISS index=products-v8 traceId=trace-srch03 userId=anon_28441
+2024-03-15T14:33:00.498Z INFO  [search-svc-e5f6a7] c.a.search.handler.SearchHandler - \
+Search completed query="mechanical keyboard" results=234 latency_ms=81 \
+cache=HIT index=products-v8 traceId=trace-srch04 userId=usr_33918
+2024-03-15T14:33:30.204Z INFO  [search-svc-d4e5f6] c.a.search.cache.CacheWarmer - \
+Warm-up progress: 34% (4.1M/12M entries populated) elapsed=3m30s \
+populationRate=19,523 entries/sec traceId=trace-srch01
+2024-03-15T14:34:00.087Z INFO  [search-svc-e5f6a7] c.a.search.handler.SearchHandler - \
+Search completed query="wireless mouse" results=167 latency_ms=102 \
+cache=MISS index=products-v8 traceId=trace-srch05 userId=anon_71923"""
 
 _SEARCH_SERVICE_METRICS = """\
-Service: search-service
-  p50_latency_ms: 95
-  p99_latency_ms: 145
-  error_rate_5xx: 0.002
-  request_rate_rps: 5400
-  cpu_utilization_pct: 38.0
-  memory_utilization_pct: 42.0
-  cache_hit_rate_pct: 78.4 (degraded -- warm-up in progress after index rebuild)
-  normal_cache_hit_rate_pct: 95.2"""
+Service: search-service (prod-us-east-1)
+
+  Aggregate Metrics (last 15m, Prometheus):
+    http_requests_total:            5,400 req/s
+    http_request_duration_seconds:
+      p50:                          95ms
+      p99:                          145ms      (baseline: 120ms — slight elevation during warm-up)
+    http_requests_errors_total:
+      5xx_rate:                     0.002      (nominal)
+    process_cpu_seconds_total:      38.0%
+    process_resident_memory_bytes:  1,721 MB / 4,096 MB limit (42.0%)
+
+  Cache Status:
+    hit_rate_current:     78.4%     (degraded — warm-up in progress after index rebuild)
+    hit_rate_baseline:    95.2%
+    warm_up_progress:     34% (4.1M / 12M entries)
+    warm_up_eta:          ~30 min
+    elasticsearch_health: GREEN (3 nodes, 48 shards)
+    auth_required:        false (public search endpoint)"""
 
 # Billing service: healthy but minor cert warning (noise)
 _BILLING_SERVICE_LOGS = """\
-[2024-03-15T14:00:00Z] INFO  billing-service/handler.go:45 daily invoice generation batch started
-[2024-03-15T14:01:00Z] INFO  billing-service/handler.go:52 generated 3,847 invoices for billing cycle 2024-03
-[2024-03-15T14:01:01Z] INFO  billing-service/handler.go:58 invoice generation complete, sending to payment-service queue
-[2024-03-15T14:15:00Z] WARN  billing-service/tls_manager.go:34 internal CA certificate expires in 30 days (2024-04-14). Renewal ticket: INFRA-8821
-[2024-03-15T14:32:00Z] INFO  billing-service/handler.go:72 GET /billing/invoices/usr_28471 status=200 latency_ms=28
-[2024-03-15T14:33:00Z] INFO  billing-service/handler.go:72 GET /billing/usage/usr_33918 status=200 latency_ms=31
-[2024-03-15T14:34:00Z] INFO  billing-service/handler.go:72 GET /billing/invoices/usr_55301 status=200 latency_ms=25"""
+2024-03-15T14:00:00.204Z INFO  [bill-svc-a1b2c3] c.a.billing.batch.InvoiceGenerator - \
+Daily invoice generation batch started batchId=inv-batch-20240315 \
+billingCycle=2024-03 traceId=trace-bill01
+2024-03-15T14:01:00.087Z INFO  [bill-svc-a1b2c3] c.a.billing.batch.InvoiceGenerator - \
+Generated 3,847 invoices for billing cycle 2024-03 \
+totalAmount=$284,912.47 currency=USD avgProcessingTime_ms=15 \
+traceId=trace-bill01
+2024-03-15T14:01:01.498Z INFO  [bill-svc-a1b2c3] c.a.billing.batch.InvoiceGenerator - \
+Invoice generation complete, enqueuing to payment-service queue \
+queueTopic=billing-invoices messageCount=3847 traceId=trace-bill01
+2024-03-15T14:15:00.204Z WARN  [bill-svc-a1b2c3] c.a.billing.tls.CertificateManager - \
+Internal CA certificate expires in 30 days (2024-04-14T00:00:00Z) \
+issuer=company-internal-ca-v2 renewalTicket=INFRA-8821 \
+autoRenewal=scheduled traceId=trace-bill02
+2024-03-15T14:32:00.087Z INFO  [bill-svc-d4e5f6] c.a.billing.handler.BillingHandler - \
+GET /billing/invoices/usr_28471 status=200 latency_ms=28 \
+invoiceCount=3 traceId=trace-bill03
+2024-03-15T14:33:00.498Z INFO  [bill-svc-a1b2c3] c.a.billing.handler.BillingHandler - \
+GET /billing/usage/usr_33918 status=200 latency_ms=31 \
+currentUsage=$127.00 billingCycle=2024-03 traceId=trace-bill04
+2024-03-15T14:34:00.204Z INFO  [bill-svc-d4e5f6] c.a.billing.handler.BillingHandler - \
+GET /billing/invoices/usr_55301 status=200 latency_ms=25 \
+invoiceCount=1 traceId=trace-bill05"""
 
 _BILLING_SERVICE_METRICS = """\
-Service: billing-service
-  p50_latency_ms: 28
-  p99_latency_ms: 55
-  error_rate_5xx: 0.001
-  request_rate_rps: 320
-  cpu_utilization_pct: 15.0
-  memory_utilization_pct: 22.0
-  ca_cert_expiry_days: 30"""
+Service: billing-service (prod-us-east-1)
+
+  Aggregate Metrics (last 15m, Prometheus):
+    http_requests_total:            320 req/s
+    http_request_duration_seconds:
+      p50:                          28ms
+      p99:                          55ms       (nominal)
+    http_requests_errors_total:
+      5xx_rate:                     0.001      (nominal)
+    process_cpu_seconds_total:      15.0%
+    process_resident_memory_bytes:  901 MB / 4,096 MB limit (22.0%)
+
+  Certificate Status:
+    internal_ca_cert:    valid (expires 2024-04-14, 30 days)
+    renewal_ticket:      INFRA-8821 (scheduled)"""
 
 # Analytics service: healthy, processing events normally
 _ANALYTICS_SERVICE_LOGS = """\
-[2024-03-15T14:14:45Z] INFO  analytics-service/batch.go:89 daily report query submitted to database
-[2024-03-15T14:14:46Z] INFO  analytics-service/batch.go:95 report query completed in 852ms (10K rows, expected ~800ms for this report)
-[2024-03-15T14:14:47Z] INFO  analytics-service/batch.go:102 report cached and available at /analytics/reports/daily-2024-03-15
-[2024-03-15T14:30:00Z] INFO  analytics-service/ingester.go:45 event ingestion rate: 24,500 events/sec (nominal)
-[2024-03-15T14:32:00Z] INFO  analytics-service/ingester.go:45 event ingestion rate: 24,800 events/sec (nominal)
-[2024-03-15T14:34:00Z] INFO  analytics-service/ingester.go:45 event ingestion rate: 24,200 events/sec (nominal)"""
+2024-03-15T14:14:45.204Z INFO  [analytics-svc-e5f6a7] c.a.analytics.batch.ReportGenerator - \
+Daily report query submitted to database queryId=rpt-daily-20240315 \
+expectedRows=10000 expectedDuration=~800ms traceId=trace-anlyt01
+2024-03-15T14:14:46.087Z INFO  [analytics-svc-e5f6a7] c.a.analytics.batch.ReportGenerator - \
+Report query completed in 852ms (10,241 rows returned — within expected range) \
+queryId=rpt-daily-20240315 cacheKey=daily-report-20240315 traceId=trace-anlyt01
+2024-03-15T14:14:47.498Z INFO  [analytics-svc-e5f6a7] c.a.analytics.batch.ReportGenerator - \
+Report cached and available at /analytics/reports/daily-2024-03-15 \
+s3Path=s3://analytics-reports/2024/03/15/daily.parquet \
+expiresAt=2024-03-16T14:14:47Z traceId=trace-anlyt01
+2024-03-15T14:30:00.204Z INFO  [analytics-svc-f6a7b8] c.a.analytics.ingester.EventIngester - \
+Event ingestion rate: 24,500 events/sec (nominal) \
+kafkaTopic=analytics-events consumerLag=8 \
+partitionsAssigned=16/16 traceId=trace-anlyt02
+2024-03-15T14:32:00.087Z INFO  [analytics-svc-f6a7b8] c.a.analytics.ingester.EventIngester - \
+Event ingestion rate: 24,800 events/sec (nominal) \
+kafkaTopic=analytics-events consumerLag=5 \
+batchWriteLatency_ms=12 traceId=trace-anlyt03
+2024-03-15T14:34:00.498Z INFO  [analytics-svc-e5f6a7] c.a.analytics.ingester.EventIngester - \
+Event ingestion rate: 24,200 events/sec (nominal) \
+kafkaTopic=analytics-events consumerLag=11 \
+batchWriteLatency_ms=14 traceId=trace-anlyt04"""
 
 _ANALYTICS_SERVICE_METRICS = """\
-Service: analytics-service
-  p50_latency_ms: 18
-  p99_latency_ms: 42
-  error_rate_5xx: 0.000
-  request_rate_rps: 180
-  cpu_utilization_pct: 22.0
-  memory_utilization_pct: 35.0
-  event_ingestion_rate: 24500/sec
-  daily_report_status: COMPLETED"""
+Service: analytics-service (prod-us-east-1)
+
+  Aggregate Metrics (last 15m, Prometheus):
+    http_requests_total:            180 req/s
+    http_request_duration_seconds:
+      p50:                          18ms
+      p99:                          42ms       (nominal)
+    http_requests_errors_total:
+      5xx_rate:                     0.000
+    process_cpu_seconds_total:      22.0%
+    process_resident_memory_bytes:  1,434 MB / 4,096 MB limit (35.0%)
+
+  Event Pipeline:
+    ingestion_rate:       24,500 events/sec (nominal)
+    kafka_consumer_lag:   8 (nominal — threshold: 1000)
+    daily_report_status:  COMPLETED (at 14:14Z, 852ms)"""
 
 _USER_SERVICE_LOGS = """\
-[2024-03-15T14:32:00Z] INFO  user-service/handler.go:45 GET /users/usr_28471/profile status=200 latency_ms=42
-[2024-03-15T14:33:00Z] INFO  user-service/handler.go:45 GET /users/usr_44192/profile status=200 latency_ms=55
-[2024-03-15T14:34:00Z] INFO  user-service/handler.go:45 GET /users/usr_33918/settings status=200 latency_ms=38"""
+2024-03-15T14:32:00.204Z INFO  [user-svc-g7h8i9] c.a.user.handler.UserHandler - \
+GET /users/usr_28471/profile status=200 latency_ms=42 \
+cacheHit=true traceId=trace-usr01 spanId=span-u01
+2024-03-15T14:33:00.087Z INFO  [user-svc-j0k1l2] c.a.user.handler.UserHandler - \
+GET /users/usr_44192/profile status=200 latency_ms=55 \
+cacheHit=false traceId=trace-usr02 spanId=span-u02
+2024-03-15T14:34:00.498Z INFO  [user-svc-g7h8i9] c.a.user.handler.UserHandler - \
+GET /users/usr_33918/settings status=200 latency_ms=38 \
+cacheHit=true traceId=trace-usr03 spanId=span-u03"""
 
 _NOTIFICATION_SERVICE_LOGS = """\
-[2024-03-15T14:32:00Z] INFO  notification-service/sender.go:89 email sent to usr_28471@example.com template=order_confirmation
-[2024-03-15T14:33:00Z] WARN  notification-service/sender.go:112 email delivery delayed: SMTP server slow response (1200ms vs 200ms baseline)
-[2024-03-15T14:33:01Z] INFO  notification-service/sender.go:89 email sent to usr_44192@example.com template=password_reset
-[2024-03-15T14:34:00Z] INFO  notification-service/sender.go:89 email sent to usr_33918@example.com template=order_confirmation"""
+2024-03-15T14:32:00.204Z INFO  [notif-svc-m3n4o5] c.a.notification.sender.EmailSender - \
+Email sent to=usr_28471@example.com template=order_confirmation \
+smtpLatency_ms=180 provider=ses messageId=msg-n01 traceId=trace-notif01
+2024-03-15T14:33:00.087Z WARN  [notif-svc-m3n4o5] c.a.notification.sender.EmailSender - \
+Email delivery delayed: SMTP server slow response latency_ms=1200 \
+baseline_ms=200 provider=ses target=usr_55301@example.com \
+template=shipping_update traceId=trace-notif02
+2024-03-15T14:33:01.498Z INFO  [notif-svc-p6q7r8] c.a.notification.sender.EmailSender - \
+Email sent to=usr_44192@example.com template=password_reset \
+smtpLatency_ms=195 provider=ses messageId=msg-n02 traceId=trace-notif03
+2024-03-15T14:34:00.204Z INFO  [notif-svc-m3n4o5] c.a.notification.sender.EmailSender - \
+Email sent to=usr_33918@example.com template=order_confirmation \
+smtpLatency_ms=172 provider=ses messageId=msg-n03 traceId=trace-notif04"""
 
 _QUEUE_LOGS = """\
-[2024-03-15T14:32:00Z] INFO  kafka/broker.go:134 partition rebalance complete for topic=order-events (16 partitions)
-[2024-03-15T14:33:00Z] INFO  kafka/broker.go:145 consumer lag: topic=order-events avg_lag=12 max_lag=45 (nominal)
-[2024-03-15T14:34:00Z] INFO  kafka/broker.go:145 consumer lag: topic=order-events avg_lag=10 max_lag=38 (nominal)"""
+2024-03-15T14:32:00.204Z INFO  [kafka-broker-0] c.a.queue.broker.PartitionManager - \
+Partition rebalance complete topic=order-events partitions=16 \
+consumers=4 strategy=cooperative-sticky rebalanceDuration_ms=847 \
+traceId=trace-kafka01
+2024-03-15T14:33:00.087Z INFO  [kafka-broker-0] c.a.queue.broker.ConsumerLagMonitor - \
+Consumer lag report: topic=order-events \
+avgLag=12 maxLag=45 p99Lag=38 consumers=4 partitions=16 \
+status=NOMINAL (threshold: maxLag<1000) traceId=trace-kafka02
+2024-03-15T14:34:00.498Z INFO  [kafka-broker-0] c.a.queue.broker.ConsumerLagMonitor - \
+Consumer lag report: topic=order-events \
+avgLag=10 maxLag=38 p99Lag=31 consumers=4 partitions=16 \
+status=NOMINAL bytesIn=4.2MB/s bytesOut=4.1MB/s traceId=trace-kafka03"""
 
 _SYSTEM_OVERVIEW = """\
-System Overview -- 2024-03-15T14:35:00Z
+System Overview — prod-us-east-1 — 2024-03-15T14:35:00Z
 
-  Cluster: prod-us-east-1
-  Total Services: 15
+  Cluster:          prod-us-east-1 (EKS 1.28)
+  Namespace:        production
+  Total Services:   15
   Services Healthy: 11
   Services Degraded: 3 (api-gateway, auth-service, order-service)
-  Services Warning: 1 (recommendation-service -- CPU autoscale)
-  Services Down: 0
+  Services Warning:  1 (recommendation-service — CPU autoscale in progress)
+  Services Down:     0
 
   Active Incidents:
     INC-2024-0315-001: Elevated error rates across multiple services
-      Opened: 2024-03-15T14:15:00Z (20 min ago)
-      Severity: SEV-2 (auto-classified)
-      Affected: ~8% of requests through api-gateway
-      On-call: @you
+      Opened:    2024-03-15T14:12:00Z (23 min ago)
+      Severity:  SEV-2 (auto-classified by anomaly detector)
+      Affected:  ~8% of authenticated requests through api-gateway
+      Impact:    Order creation failures, intermittent auth errors
+      On-call:   @you (primary), @infra-lead (secondary)
+      PagerDuty: incident.pagerduty.com/incidents/P8X2Y4Z
+      Slack:     #inc-2024-0315-001
 
-  Recent Activity:
-    14:05 - config-service pushed rate-limit updates to 4 services
-    14:10 - auth-service canary deployment (v5.1.0-canary)
-    14:14 - analytics-service daily report query (852ms)
-    14:15 - incident opened (error rate elevation detected)
-    14:28 - recommendation-service ML retraining job started
-    14:30 - recommendation-service autoscaler triggered
-    14:30 - search-service cache warm-up started"""
+  Recent Activity Timeline:
+    14:05Z — config-service pushed rate-limit updates to 4 services (SUCCESS)
+    14:10Z — auth-service canary deployment v5.1.0-canary (10% traffic)
+    14:12Z — anomaly detector triggered INC-2024-0315-001
+    14:14Z — analytics-service daily report query (852ms — expected)
+    14:28Z — recommendation-service ML retraining job started (scheduled)
+    14:30Z — recommendation-service autoscaler triggered (3→5 replicas)
+    14:30Z — search-service cache warm-up started (index rebuild)"""
 
 _SYSTEM_RECENT_CHANGES = """\
-Recent Changes (last 24 hours):
+Recent Changes (last 24 hours) — prod-us-east-1
 
-  1. [2024-03-15T14:05:04Z] config-service rate-limit config push to 4 services
-     Targets: api-gateway, order-service, payment-service, auth-service
-     Change: rate limit increases across all targets
-     Author: @platform-team
-     Status: COMPLETED -- all services acknowledged
+  1. [2024-03-15T14:10:00Z] auth-service v5.1.0-canary deployed (10% traffic)
+     Type:    Canary deployment
+     Change:  Refactored OAuth token validation — claims-validator v3
+     Author:  ci-bot (PR #2341 by @sarah-auth, reviewed by @mike-platform)
+     Impact:  10% of auth traffic routed to canary pod auth-svc-canary-x9k2m
+     Status:  CANARY_ACTIVE (auto-promote blocked — error threshold exceeded)
 
-  2. [2024-03-15T14:10:00Z] auth-service v5.1.0-canary deployed (10% traffic)
-     Change: Refactored OAuth token validation to use claims-validator v3
-     Author: ci-bot (PR #2341 by @sarah-auth)
-     Status: CANARY_ACTIVE
+  2. [2024-03-15T14:05:04Z] config-service rate-limit config push
+     Type:    Configuration update (not code deployment)
+     Change:  Rate-limit increases: api-gateway 15K→18K, order-service 50→60/user,
+              payment-service 30→40/user, auth-service 2.5K→3K
+     Author:  @platform-team
+     Status:  COMPLETED — all 4 services acknowledged v143
 
-  3. [2024-03-15T12:15:00Z] cdn DNS configuration update
-     Change: Updated CNAME records for static.example.com
-     Author: @infra-bot (automated)
-     Status: COMPLETED
+  3. [2024-03-15T12:15:00Z] CDN DNS configuration update
+     Type:    Infrastructure change
+     Change:  Updated CNAME records for static.example.com
+     Author:  @infra-bot (automated)
+     Status:  COMPLETED — propagated to all 47 edge nodes
 
   4. [2024-03-15T06:00:00Z] database maintenance window
-     Change: Routine vacuum and index rebuild (automated)
-     Author: dba-automation
-     Status: COMPLETED
+     Type:    Automated maintenance
+     Change:  Routine VACUUM and index rebuild on auth_sessions, orders tables
+     Author:  dba-automation
+     Status:  COMPLETED — no anomalies detected
 
   5. [2024-03-14T22:00:00Z] notification-service config update
-     Change: Adjusted email retry backoff from 30s to 60s
-     Author: @alerts-team
-     Status: COMPLETED
+     Type:    Configuration update
+     Change:  Adjusted email retry backoff 30s→60s
+     Author:  @alerts-team
+     Status:  COMPLETED
 
-  6. [2024-03-14T16:00:00Z] queue scaling event
-     Change: Increased partition count from 12 to 16 for order-events topic
-     Author: @platform-team
-     Status: COMPLETED
+  6. [2024-03-14T16:00:00Z] Kafka partition scaling
+     Type:    Infrastructure change
+     Change:  Increased partition count 12→16 for order-events topic
+     Author:  @platform-team
+     Status:  COMPLETED — rebalance finished
 
   7. [2024-03-13T09:00:00Z] search-service v8.2.1 deployed
-     Change: Elasticsearch index rebuild, search ranking improvements
-     Author: ci-bot (PR #1892 by @search-team)
-     Status: STABLE (cache warm-up still in progress)"""
+     Type:    Rolling deployment
+     Change:  Elasticsearch index rebuild, search ranking improvements
+     Author:  ci-bot (PR #1892 by @search-team)
+     Status:  STABLE (cache warm-up still in progress — 34% complete)"""
 
 _SYSTEM_DEPENDENCY_GRAPH = """\
-Service Dependency Graph:
+Service Dependency Graph — prod-us-east-1 (Istio service mesh)
 
-  api-gateway
-    +-- auth-service (authentication for all /api/* routes)
-    |     +-- database (session store, revocation lists)
-    |     +-- cache (token cache, JWKS key cache)
-    +-- user-service
-    |     +-- database
-    +-- payment-service
-    |     +-- database
-    |     +-- notification-service
-    |           +-- queue
-    +-- order-service
-    |     +-- auth-service (validates user tokens)
-    |     +-- database
-    +-- search-service (no auth required for read-only search)
-    +-- billing-service
-    |     +-- database
-    +-- analytics-service
-          +-- database
+  api-gateway (v3.8.2) — Envoy front-proxy, all external traffic
+    ├─→ auth-service (v5.0.4/v5.1.0-canary) [DEGRADED — 8.2% 5xx]
+    │     ├─→ database (PostgreSQL 15.4) [HEALTHY — 4ms p50]
+    │     ├─→ cache (Redis 7.2) [HEALTHY — 1.1ms p50, 94% hit rate]
+    │     ├─→ provider-A (external OAuth) [HEALTHY]
+    │     ├─→ provider-B (external OAuth) [HEALTHY]
+    │     └─→ provider-C (external OAuth) [HEALTHY]
+    ├─→ user-service (v6.1.0) [HEALTHY]
+    │     └─→ database [HEALTHY]
+    ├─→ payment-service (v3.9.2) [HEALTHY — TLS cert warning, 14 days]
+    │     ├─→ database [HEALTHY]
+    │     └─→ notification-service (v2.8.1) [HEALTHY]
+    │           └─→ queue (Kafka 3.6) [HEALTHY — lag nominal]
+    ├─→ order-service (v4.2.1) [DEGRADED — 7.2% 5xx, cascading from auth]
+    │     ├─→ auth-service [DEGRADED]
+    │     └─→ database [HEALTHY]
+    ├─→ search-service (v8.2.1) [HEALTHY — cache warm-up 34%]
+    ├─→ billing-service (v1.12.0) [HEALTHY — CA cert warning, 30 days]
+    │     └─→ database [HEALTHY]
+    └─→ analytics-service (v2.8.0) [HEALTHY]
+          └─→ database [HEALTHY]
 
-  recommendation-service (standalone, async)
-  config-service (pushes configs, no runtime dependency)
-  cdn (edge layer, serves static assets only)"""
+  recommendation-service (v2.14.0) [WARNING — CPU 92%, autoscaler active]
+    └─→ data-lake (S3, async reads)
+
+  config-service (v1.4.2) [HEALTHY — push-based, no runtime dependency]
+    └─→ etcd (v3.5.9) — config store
+
+  cdn [HEALTHY — infrastructure-managed, DNS change 2h ago resolved]"""
 
 
 # ---------------------------------------------------------------------------
@@ -707,11 +1269,17 @@ class HardCanaryScenario(BaseScenario):
     ]
 
     initial_alert = (
-        "ANOMALY: Elevated error rates across multiple services. "
-        "api-gateway 502 rate at 8%, order-service failures increasing. "
-        "recommendation-service CPU alert firing. config-service pushed "
-        "updates 20 minutes ago. Possible infrastructure issue. "
-        "Started ~25 minutes ago."
+        "[P2] FIRING: Elevated Error Rates \u2014 Multiple Services\n"
+        "Trigger: error_rate_5xx > 0.05 for 5m on api-gateway (current: 0.081)\n"
+        "Affected: api-gateway (8.1%), auth-service (8.2%), order-service (7.2%)\n"
+        "Also firing: recommendation-service CPU > 90% (autoscaler responding)\n"
+        "Note: config-service pushed rate-limit updates to 4 services at 14:10Z\n"
+        "Cluster: prod-us-east-1 | Namespace: production\n"
+        "Dashboard: https://grafana.internal/d/multi-svc-errors\n"
+        "Runbook: https://wiki.internal/runbooks/intermittent-5xx\n"
+        "On-call: @you (primary)\n"
+        "Started: 2024-03-15T14:12:00Z | Duration: 23m 47s\n"
+        "Pattern: Intermittent \u2014 affects ~10% of authenticated requests"
     )
 
     def __init__(self) -> None:
@@ -777,10 +1345,11 @@ class HardCanaryScenario(BaseScenario):
         return IncidentObservation(
             message=self.initial_alert,
             alert_summary=(
-                "Elevated error rates across multiple services. "
-                "api-gateway 502 at 8%. order-service failures increasing. "
-                "recommendation-service CPU alert. config-service pushed "
-                "updates recently. ~25 min ago."
+                "[P2] FIRING: Elevated error rates across multiple services. "
+                "api-gateway 502 at 8.1%. auth-service 5xx at 8.2%. order-service "
+                "failures at 7.2%. recommendation-service CPU alert (autoscaler "
+                "responding). config-service pushed rate-limit updates at 14:05Z. "
+                "Incident started 23m ago. Pattern: intermittent."
             ),
             system_status=self.get_system_status_dict(),
             available_actions=self.get_available_actions(),
@@ -1015,17 +1584,24 @@ class HardCanaryScenario(BaseScenario):
             ("order-service", "logs"): _ORDER_LOGS,
             ("order-service", "metrics"): _ORDER_METRICS,
             ("order-service", "deployments"): (
-                "Deployment History for order-service:\n"
-                "  v4.2.1 (current) -- deployed 2024-03-07T10:00:00Z (8 days ago)\n"
-                "    Changes: \"Improved order validation error messages\"\n"
-                "    Status: STABLE -- no recent changes"
+                "Deployment History: order-service (prod-us-east-1)\n\n"
+                "  \u250c\u2500 STABLE (current) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n"
+                "  \u2502 Version:    v4.2.1\n"
+                "  \u2502 Deployed:   2024-03-07T10:00:00Z (8 days ago)\n"
+                "  \u2502 Triggered:  ci-bot via PR #2105\n"
+                "  \u2502 Commit:     a1b2c3d \"improved order validation error messages\"\n"
+                "  \u2502 CI:         \u2713 unit tests | \u2713 integration | \u2713 load test\n"
+                "  \u2502 Image:      registry.internal/order-service:v4.2.1@sha256:b2c3d4e5...\n"
+                "  \u2502 Status:     STABLE \u2014 no recent changes\n"
+                "  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
             ),
             ("order-service", "dependencies"): (
-                "Service: order-service\n"
-                "  Upstream: api-gateway\n"
-                "  Downstream:\n"
-                "    - auth-service: DEGRADED (intermittent 500s)\n"
-                "    - database: HEALTHY"
+                "order-service (v4.2.1) \u2014 Dependency Graph\n\n"
+                "  Downstream Dependencies:\n"
+                "  \u251c\u2500\u2192 auth-service (v5.0.4/v5.1.0-canary) [DEGRADED \u2014 intermittent 500s | circuit: HALF_OPEN]\n"
+                "  \u2514\u2500\u2192 database (PostgreSQL 15.4) [HEALTHY \u2014 latency: 4ms | pool: 32/100 | circuit: CLOSED]\n\n"
+                "  Upstream Callers:\n"
+                "  \u2514\u2500\u2500 api-gateway [routes /api/v2/orders/* to order-service]"
             ),
 
             # api-gateway -- victim / entry point
@@ -1033,50 +1609,74 @@ class HardCanaryScenario(BaseScenario):
             ("api-gateway", "metrics"): _API_GATEWAY_METRICS,
             ("api-gateway", "deployments"): _API_GATEWAY_DEPLOYMENTS,
             ("api-gateway", "dependencies"): (
-                "Service: api-gateway\n"
-                "  Upstream: external clients (internet)\n"
-                "  Downstream:\n"
-                "    - auth-service: DEGRADED\n"
-                "    - user-service: HEALTHY\n"
-                "    - payment-service: HEALTHY\n"
-                "    - order-service: DEGRADED\n"
-                "    - search-service: HEALTHY\n"
-                "    - billing-service: HEALTHY\n"
-                "    - analytics-service: HEALTHY"
+                "api-gateway (v3.8.2) \u2014 Dependency Graph\n\n"
+                "  Upstream: external clients (internet) via ALB / CloudFront\n\n"
+                "  Downstream Dependencies (Envoy clusters):\n"
+                "  \u251c\u2500\u2192 auth-service      [DEGRADED \u2014 8.2% 5xx | circuit: HALF_OPEN]\n"
+                "  \u251c\u2500\u2192 user-service      [HEALTHY  \u2014 0.3% 5xx | circuit: CLOSED]\n"
+                "  \u251c\u2500\u2192 payment-service   [HEALTHY  \u2014 0.5% 5xx | circuit: CLOSED]\n"
+                "  \u251c\u2500\u2192 order-service     [DEGRADED \u2014 7.2% 5xx | circuit: HALF_OPEN]\n"
+                "  \u251c\u2500\u2192 search-service    [HEALTHY  \u2014 0.2% 5xx | circuit: CLOSED]\n"
+                "  \u251c\u2500\u2192 billing-service   [HEALTHY  \u2014 0.1% 5xx | circuit: CLOSED]\n"
+                "  \u2514\u2500\u2192 analytics-service [HEALTHY  \u2014 0.0% 5xx | circuit: CLOSED]"
             ),
 
             # user-service -- healthy bystander
             ("user-service", "logs"): _USER_SERVICE_LOGS,
             ("user-service", "metrics"): (
-                "Service: user-service\n"
-                "  p50_latency_ms: 42\n  p99_latency_ms: 60\n"
-                "  error_rate_5xx: 0.003\n  request_rate_rps: 1800\n"
-                "  cpu_utilization_pct: 30.0\n  memory_utilization_pct: 35.0"
+                "Service: user-service (prod-us-east-1)\n\n"
+                "  Aggregate Metrics (last 15m, Prometheus):\n"
+                "    http_requests_total:           1,800 req/s\n"
+                "    http_request_duration_seconds:\n"
+                "      p50:                         42ms\n"
+                "      p99:                         60ms       (nominal)\n"
+                "    http_requests_errors_total:\n"
+                "      5xx_rate:                    0.003      (nominal)\n"
+                "    process_cpu_seconds_total:     30.0%\n"
+                "    process_resident_memory_bytes: 1,434 MB / 4,096 MB limit (35.0%)"
             ),
             ("user-service", "deployments"): (
-                "Deployment History for user-service:\n"
-                "  v6.1.0 (current) -- deployed 2024-03-06T14:00:00Z (9 days ago)\n"
-                "    Changes: \"Added pagination support for user list endpoint\"\n"
-                "    Status: STABLE"
+                "Deployment History: user-service (prod-us-east-1)\n\n"
+                "  \u250c\u2500 STABLE (current) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n"
+                "  \u2502 Version:    v6.1.0\n"
+                "  \u2502 Deployed:   2024-03-06T14:00:00Z (9 days ago)\n"
+                "  \u2502 Triggered:  ci-bot via PR #2044\n"
+                "  \u2502 Commit:     f6a7b8c \"added pagination support for user list endpoint\"\n"
+                "  \u2502 CI:         \u2713 unit tests | \u2713 integration\n"
+                "  \u2502 Image:      registry.internal/user-service:v6.1.0@sha256:a7b8c9d0...\n"
+                "  \u2502 Status:     STABLE\n"
+                "  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
             ),
 
             # notification-service -- healthy
             ("notification-service", "logs"): _NOTIFICATION_SERVICE_LOGS,
             ("notification-service", "metrics"): (
-                "Service: notification-service\n"
-                "  p50_latency_ms: 55\n  p99_latency_ms: 100\n"
-                "  error_rate_5xx: 0.003\n  request_rate_rps: 420\n"
-                "  cpu_utilization_pct: 18.0\n  memory_utilization_pct: 25.0"
+                "Service: notification-service (prod-us-east-1)\n\n"
+                "  Aggregate Metrics (last 15m, Prometheus):\n"
+                "    http_requests_total:           420 req/s\n"
+                "    http_request_duration_seconds:\n"
+                "      p50:                         55ms\n"
+                "      p99:                         100ms      (nominal)\n"
+                "    http_requests_errors_total:\n"
+                "      5xx_rate:                    0.003      (nominal)\n"
+                "    process_cpu_seconds_total:     18.0%\n"
+                "    process_resident_memory_bytes: 1,024 MB / 4,096 MB limit (25.0%)\n\n"
+                "  Email Delivery:\n"
+                "    delivery_rate:        99.2%\n"
+                "    avg_smtp_latency_ms:  185      (baseline: 180ms)"
             ),
 
             # database -- healthy but with suspicious slow query
             ("database", "logs"): _DATABASE_LOGS,
             ("database", "metrics"): _DATABASE_METRICS,
             ("database", "deployments"): (
-                "Deployment History for database:\n"
-                "  PostgreSQL 15.4 -- no application-level deployments\n"
-                "  Last maintenance: 2024-03-15T06:00:00Z (routine vacuum)\n"
-                "  Status: STABLE"
+                "Deployment History: database (prod-us-east-1)\n\n"
+                "  PostgreSQL 15.4 \u2014 no application-level deployments\n\n"
+                "  Infrastructure Events:\n"
+                "    2024-03-15T06:00:00Z: Routine maintenance window (VACUUM, index rebuild)\n"
+                "    2024-03-10T06:00:00Z: Minor version patch 15.3\u219215.4\n"
+                "    2024-03-01T06:00:00Z: Disk volume expansion 500GB\u21921TB\n\n"
+                "  Status: STABLE \u2014 no anomalies"
             ),
 
             # cache -- healthy
@@ -1086,31 +1686,52 @@ class HardCanaryScenario(BaseScenario):
             # queue -- healthy
             ("queue", "logs"): _QUEUE_LOGS,
             ("queue", "metrics"): (
-                "Service: queue (Kafka 3.6)\n"
-                "  latency_ms: 10\n  error_rate: 0.000\n"
-                "  consumer_lag_avg: 12\n  consumer_lag_max: 45\n"
-                "  partitions: 16\n  cpu_utilization_pct: 8.0\n"
-                "  memory_utilization_pct: 15.0"
+                "Service: queue (Kafka 3.6, prod-us-east-1)\n\n"
+                "  Aggregate Metrics (last 15m, kafka_exporter):\n"
+                "    kafka_consumergroup_lag:        avg=12, max=45 (nominal)\n"
+                "    kafka_server_brokertopicmetrics:\n"
+                "      bytes_in_per_sec:             4.2 MB/s\n"
+                "      bytes_out_per_sec:            4.1 MB/s\n"
+                "      messages_in_per_sec:          24,500\n"
+                "    kafka_topic_partitions:          16 (order-events)\n"
+                "    node_cpu_seconds_total:          8.0%\n"
+                "    node_memory_MemUsed_bytes:       15.0%\n\n"
+                "  Cluster:\n"
+                "    brokers: 3/3 healthy\n"
+                "    under_replicated_partitions: 0\n"
+                "    offline_partitions: 0"
             ),
 
             # analytics-service -- healthy
             ("analytics-service", "logs"): _ANALYTICS_SERVICE_LOGS,
             ("analytics-service", "metrics"): _ANALYTICS_SERVICE_METRICS,
             ("analytics-service", "deployments"): (
-                "Deployment History for analytics-service:\n"
-                "  v2.8.0 (current) -- deployed 2024-03-02T09:00:00Z (13 days ago)\n"
-                "    Changes: \"Added daily revenue report aggregation\"\n"
-                "    Status: STABLE"
+                "Deployment History: analytics-service (prod-us-east-1)\n\n"
+                "  \u250c\u2500 STABLE (current) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n"
+                "  \u2502 Version:    v2.8.0\n"
+                "  \u2502 Deployed:   2024-03-02T09:00:00Z (13 days ago)\n"
+                "  \u2502 Triggered:  ci-bot via PR #1844\n"
+                "  \u2502 Commit:     b8c9d0e \"added daily revenue report aggregation\"\n"
+                "  \u2502 CI:         \u2713 unit tests | \u2713 integration | \u2713 data validation\n"
+                "  \u2502 Image:      registry.internal/analytics-service:v2.8.0@sha256:c9d0e1f2...\n"
+                "  \u2502 Status:     STABLE\n"
+                "  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
             ),
 
             # billing-service -- healthy with minor cert warning
             ("billing-service", "logs"): _BILLING_SERVICE_LOGS,
             ("billing-service", "metrics"): _BILLING_SERVICE_METRICS,
             ("billing-service", "deployments"): (
-                "Deployment History for billing-service:\n"
-                "  v1.12.0 (current) -- deployed 2024-03-09T15:00:00Z (6 days ago)\n"
-                "    Changes: \"Invoice template formatting improvements\"\n"
-                "    Status: STABLE"
+                "Deployment History: billing-service (prod-us-east-1)\n\n"
+                "  \u250c\u2500 STABLE (current) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n"
+                "  \u2502 Version:    v1.12.0\n"
+                "  \u2502 Deployed:   2024-03-09T15:00:00Z (6 days ago)\n"
+                "  \u2502 Triggered:  ci-bot via PR #2156\n"
+                "  \u2502 Commit:     d0e1f2a \"invoice template formatting improvements\"\n"
+                "  \u2502 CI:         \u2713 unit tests | \u2713 integration | \u2713 financial validation\n"
+                "  \u2502 Image:      registry.internal/billing-service:v1.12.0@sha256:e1f2a3b4...\n"
+                "  \u2502 Status:     STABLE\n"
+                "  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
             ),
 
             # System-level investigations
@@ -1129,33 +1750,57 @@ class HardCanaryScenario(BaseScenario):
             ("recommendation-service", "metrics"): _RECOMMENDATION_METRICS,
             ("recommendation-service", "deployments"): _RECOMMENDATION_DEPLOYMENTS,
             ("recommendation-service", "dependencies"): (
-                "Service: recommendation-service\n"
-                "  Upstream: api-gateway (async, non-blocking)\n"
-                "  Downstream: None (standalone ML service, reads from data-lake)"
+                "recommendation-service (v2.14.0) \u2014 Dependency Graph\n\n"
+                "  Downstream Dependencies:\n"
+                "  \u2514\u2500\u2192 data-lake (S3) [async reads for ML training | status: HEALTHY]\n\n"
+                "  Upstream Callers:\n"
+                "  \u2514\u2500\u2500 api-gateway [routes /api/v2/recommendations | async, non-blocking]\n\n"
+                "  Note: Standalone ML service. No synchronous runtime dependencies.\n"
+                "        CPU spike is from scheduled daily retraining job (cron: 0 14 * * *)."
             ),
             ("recommendation-service", "config"): (
-                "Service: recommendation-service -- Runtime Configuration\n"
-                "  model_retraining_schedule: '0 14 * * *' (daily at 14:00 UTC)\n"
-                "  autoscaler_enabled: true\n"
-                "  autoscaler_min_replicas: 3\n"
-                "  autoscaler_max_replicas: 8\n"
-                "  autoscaler_target_cpu: 70\n"
-                "  current_replicas: 5 (scaled at 14:30Z)"
+                "recommendation-service/config.yaml \u2014 Runtime Configuration\n\n"
+                "  ml_pipeline:\n"
+                "    model_retraining_schedule: '0 14 * * *'     # daily at 14:00 UTC\n"
+                "    model_type: collaborative-filtering-v4\n"
+                "    training_data_source: s3://ml-data-lake/interactions/\n"
+                "    training_window_days: 7\n"
+                "    feature_dimensions: 128\n\n"
+                "  autoscaler:\n"
+                "    enabled: true\n"
+                "    min_replicas: 3\n"
+                "    max_replicas: 8\n"
+                "    target_cpu: 70\n"
+                "    scale_up_cooldown: 60s\n"
+                "    scale_down_cooldown: 300s\n"
+                "    current_replicas: 5 (scaled at 14:30Z \u2014 expected during retraining)"
             ),
 
             # cdn: DNS change 2 hours ago
             ("cdn", "logs"): _CDN_LOGS,
             ("cdn", "metrics"): (
-                "Service: cdn\n"
-                "  latency_ms: 25\n  error_rate: 0.001\n"
-                "  cache_hit_rate_pct: 98.7\n"
-                "  cpu_utilization_pct: 5.0\n  memory_utilization_pct: 10.0\n"
-                "  dns_config_change: 2024-03-15T12:15:00Z (2 hours ago)"
+                "Service: cdn (CloudFront, 47 edge locations)\n\n"
+                "  Aggregate Metrics (last 15m):\n"
+                "    avg_latency_ms:            19\n"
+                "    error_rate:                0.001      (nominal)\n"
+                "    cache_hit_rate_pct:        98.7%\n"
+                "    bandwidth_utilization_pct: 34.2%\n"
+                "    node_cpu_seconds_total:    5.0%\n"
+                "    node_memory_pct:           10.0%\n\n"
+                "  DNS:\n"
+                "    last_config_change:   2024-03-15T12:15:00Z (2 hours ago)\n"
+                "    change_type:          CNAME update for static.example.com\n"
+                "    propagation_status:   COMPLETE (all 47 edge nodes)\n"
+                "    post_change_health:   PASSED"
             ),
             ("cdn", "deployments"): (
-                "Deployment History for cdn:\n"
-                "  No application deployments. Infrastructure-managed.\n"
-                "  Last config change: DNS CNAME update at 12:15Z."
+                "Deployment History: cdn\n\n"
+                "  Infrastructure-managed \u2014 no application deployments.\n\n"
+                "  Recent Infrastructure Events:\n"
+                "    2024-03-15T12:15:00Z: DNS CNAME update for static.example.com\n"
+                "                          Propagation: COMPLETE (5 min)\n"
+                "                          Post-change health: PASSED\n"
+                "    2024-03-01T08:00:00Z: Edge node capacity expansion (+12 locations)"
             ),
 
             # config-service: pushed rate-limit updates recently
@@ -1163,18 +1808,31 @@ class HardCanaryScenario(BaseScenario):
             ("config-service", "metrics"): _CONFIG_SERVICE_METRICS,
             ("config-service", "deployments"): _CONFIG_SERVICE_DEPLOYMENTS,
             ("config-service", "dependencies"): (
-                "Service: config-service\n"
-                "  Upstream: none (push-based, triggered by platform team)\n"
-                "  Downstream: pushes to api-gateway, order-service, payment-service, auth-service\n"
-                "  Last push: 2024-03-15T14:05:04Z (30 min ago)"
+                "config-service (v1.4.2) \u2014 Dependency Graph\n\n"
+                "  Downstream Dependencies:\n"
+                "  \u2514\u2500\u2192 etcd (v3.5.9) [HEALTHY \u2014 3/3 members | leader: etcd-0]\n\n"
+                "  Push Targets (fire-and-forget with ack):\n"
+                "  \u251c\u2500\u2192 api-gateway       [last push: 14:05Z | ack: OK]\n"
+                "  \u251c\u2500\u2192 order-service     [last push: 14:05Z | ack: OK]\n"
+                "  \u251c\u2500\u2192 payment-service   [last push: 14:05Z | ack: OK]\n"
+                "  \u2514\u2500\u2192 auth-service      [last push: 14:05Z | ack: OK]\n\n"
+                "  Note: Push-based service. No runtime dependency from other services."
             ),
             ("config-service", "config"): (
-                "Service: config-service -- Runtime Configuration\n"
-                "  push_mode: fire-and-forget with ack\n"
-                "  push_timeout_sec: 10\n"
-                "  rollback_on_failure: false\n"
-                "  audit_log_enabled: true\n"
-                "  config_store: etcd (v3.5.9)"
+                "config-service/config.yaml \u2014 Runtime Configuration\n\n"
+                "  push_engine:\n"
+                "    mode: fire-and-forget with ack\n"
+                "    push_timeout_sec: 10\n"
+                "    rollback_on_failure: false\n"
+                "    max_concurrent_pushes: 4\n\n"
+                "  audit:\n"
+                "    enabled: true\n"
+                "    s3_bucket: s3://audit-logs/config/\n"
+                "    retention_days: 90\n\n"
+                "  storage:\n"
+                "    backend: etcd (v3.5.9)\n"
+                "    cluster: etcd-0, etcd-1, etcd-2\n"
+                "    health: HEALTHY"
             ),
 
             # payment-service: cert renewal warning
@@ -1182,39 +1840,69 @@ class HardCanaryScenario(BaseScenario):
             ("payment-service", "metrics"): _PAYMENT_SERVICE_METRICS,
             ("payment-service", "deployments"): _PAYMENT_SERVICE_DEPLOYMENTS,
             ("payment-service", "dependencies"): (
-                "Service: payment-service\n"
-                "  Upstream: api-gateway, order-service\n"
-                "  Downstream:\n"
-                "    - database: HEALTHY\n"
-                "    - notification-service: HEALTHY\n"
-                "    - auth-service: DEGRADED (intermittent 500s on pre-check)"
+                "payment-service (v3.9.2) \u2014 Dependency Graph\n\n"
+                "  Downstream Dependencies:\n"
+                "  \u251c\u2500\u2192 database (PostgreSQL 15.4) [HEALTHY \u2014 latency: 5ms | pool: 28/100 | circuit: CLOSED]\n"
+                "  \u251c\u2500\u2192 notification-service (v2.8.1) [HEALTHY \u2014 latency: 55ms | circuit: CLOSED]\n"
+                "  \u2514\u2500\u2192 auth-service (pre-check) [DEGRADED \u2014 intermittent 500s on token validation]\n\n"
+                "  Upstream Callers:\n"
+                "  \u251c\u2500\u2500 api-gateway [routes /api/v2/payments]\n"
+                "  \u2514\u2500\u2500 order-service [payment processing after order creation]\n\n"
+                "  External:\n"
+                "  \u2514\u2500\u2192 stripe (payment processor) [HEALTHY \u2014 mTLS | cert expires 2024-03-29]"
             ),
             ("payment-service", "config"): (
-                "Service: payment-service -- Runtime Configuration\n"
-                "  tls_cert_path: /etc/ssl/payment-gateway.pem\n"
-                "  tls_cert_expiry: 2024-03-29T00:00:00Z (14 days)\n"
-                "  mtls_enabled: true\n"
-                "  auto_renewal: scheduled 2024-03-22\n"
-                "  pci_compliance_mode: strict\n"
-                "  auth_pre_check: enabled (validates user token before processing)"
+                "payment-service/config.yaml \u2014 Runtime Configuration (PCI DSS zone)\n\n"
+                "  tls:\n"
+                "    cert_path: /etc/ssl/payment-gateway.pem\n"
+                "    cert_expiry: 2024-03-29T00:00:00Z (14 days)\n"
+                "    mtls_enabled: true\n"
+                "    auto_renewal: scheduled 2024-03-22\n"
+                "    processor: stripe\n\n"
+                "  auth_pre_check:\n"
+                "    enabled: true        # validates user token before processing payment\n"
+                "    upstream: auth-service\n"
+                "    retry_policy: exponential_backoff (3 attempts)\n"
+                "    timeout_ms: 2000\n\n"
+                "  compliance:\n"
+                "    pci_mode: strict\n"
+                "    audit_logging: enabled\n"
+                "    encryption_at_rest: AES-256-GCM"
             ),
 
             # search-service: cache miss rate elevated
             ("search-service", "logs"): _SEARCH_SERVICE_LOGS,
             ("search-service", "metrics"): _SEARCH_SERVICE_METRICS,
             ("search-service", "deployments"): (
-                "Deployment History for search-service:\n"
-                "  v8.2.1 (current) -- deployed 2024-03-13T09:00:00Z (2 days ago)\n"
-                "    Changes: \"Elasticsearch index rebuild, search ranking improvements\"\n"
-                "    Status: STABLE (cache warm-up in progress)"
+                "Deployment History: search-service (prod-us-east-1)\n\n"
+                "  \u250c\u2500 STABLE (current) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n"
+                "  \u2502 Version:    v8.2.1\n"
+                "  \u2502 Deployed:   2024-03-13T09:00:00Z (2 days ago)\n"
+                "  \u2502 Triggered:  ci-bot via PR #1892\n"
+                "  \u2502 Commit:     e2f3a4b \"Elasticsearch index rebuild, search ranking improvements\"\n"
+                "  \u2502 CI:         \u2713 unit tests | \u2713 integration | \u2713 relevance benchmarks\n"
+                "  \u2502 Image:      registry.internal/search-service:v8.2.1@sha256:f3a4b5c6...\n"
+                "  \u2502 Status:     STABLE (cache warm-up in progress \u2014 34% complete)\n"
+                "  \u2502 Note:       Cache hit rate temporarily degraded (78.4% vs 95.2% baseline)\n"
+                "  \u2502             Expected full recovery in ~30 min\n"
+                "  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
             ),
             ("search-service", "config"): (
-                "Service: search-service -- Runtime Configuration\n"
-                "  elasticsearch_version: 8.12.0\n"
-                "  cache_size: 12M entries\n"
-                "  cache_ttl_sec: 3600\n"
-                "  cache_warm_up_status: IN_PROGRESS (34% complete)\n"
-                "  auth_required: false"
+                "search-service/config.yaml \u2014 Runtime Configuration\n\n"
+                "  elasticsearch:\n"
+                "    version: 8.12.0\n"
+                "    cluster_health: GREEN\n"
+                "    nodes: 3\n"
+                "    shards: 48 (all assigned)\n"
+                "    index: products-v8\n\n"
+                "  cache:\n"
+                "    total_entries: 12,000,000\n"
+                "    ttl_sec: 3600\n"
+                "    warm_up_status: IN_PROGRESS (34% complete)\n"
+                "    warm_up_eta: ~30 min\n"
+                "    eviction_policy: LRU\n\n"
+                "  auth:\n"
+                "    required: false       # public search endpoint, no auth dependency"
             ),
         }
 

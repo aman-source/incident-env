@@ -1,18 +1,14 @@
 """
-Baseline inference script for the Incident Response Triage Environment.
+Inference script for the Incident Response Triage Environment.
 
-This script runs an LLM agent against all 3 incident response tasks and
-produces reproducible scores. It uses the OpenAI-compatible API format,
-supporting any provider (OpenAI, Groq, Together, etc.).
+Runs an LLM agent against all 3 incident response tasks using the
+OpenAI-compatible API through the validator's LiteLLM proxy.
 
-Usage:
-    OPENAI_API_KEY=sk-... python inference.py
-    OPENAI_API_KEY=gsk-... OPENAI_BASE_URL=https://api.groq.com/openai/v1 python inference.py
-
-Environment Variables:
-    OPENAI_API_KEY:   API key for the LLM provider
-    OPENAI_BASE_URL:  Base URL for OpenAI-compatible API (optional)
-    MODEL_NAME:       Model to use (default: gpt-4o-mini)
+Environment Variables (injected by validator):
+    API_BASE_URL   The API endpoint for the LLM.
+    API_KEY        API key for the LLM proxy.
+    HF_TOKEN       Hugging Face token (fallback for API_KEY).
+    MODEL_NAME     The model identifier to use for inference.
 """
 
 from __future__ import annotations
@@ -20,11 +16,53 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import Any
+from typing import Any, List, Optional
+
+from openai import OpenAI
 
 from incident_env.models import IncidentAction, IncidentObservation
 from incident_env.server.incident_environment import IncidentEnvironment
 
+# ---------------------------------------------------------------------------
+# Environment variables
+# ---------------------------------------------------------------------------
+API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY") or os.getenv("OPENAI_API_KEY")
+API_BASE_URL = os.getenv("API_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://router.huggingface.co/v1"
+MODEL_NAME = os.getenv("MODEL_NAME") or "gpt-4o-mini"
+BENCHMARK = "incident_env"
+MAX_STEPS = 20
+TEMPERATURE = 0.7
+MAX_TOKENS = 256
+SUCCESS_SCORE_THRESHOLD = 0.1
+
+# ---------------------------------------------------------------------------
+# Structured stdout logging (exact format required by validator)
+# ---------------------------------------------------------------------------
+
+def log_start(task: str, env: str, model: str) -> None:
+    print(f"[START] task={task} env={env} model={model}", flush=True)
+
+
+def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]) -> None:
+    error_val = error if error else "null"
+    done_val = str(done).lower()
+    print(
+        f"[STEP] step={step} action={action} reward={reward:.2f} done={done_val} error={error_val}",
+        flush=True,
+    )
+
+
+def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
+    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    print(
+        f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}",
+        flush=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# SRE system prompt
+# ---------------------------------------------------------------------------
 SYSTEM_PROMPT = """You are an expert SRE (Site Reliability Engineer) responding to a production incident.
 You will receive observations about the system state and must take actions to diagnose and resolve the incident as quickly as possible.
 
@@ -54,6 +92,10 @@ Strategy:
 IMPORTANT: Respond with ONLY a valid JSON action object. No explanation, no markdown, just JSON."""
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
 def _parse_action(text: str) -> IncidentAction:
     """Parse LLM response into an IncidentAction."""
     text = text.strip()
@@ -68,12 +110,15 @@ def _parse_action(text: str) -> IncidentAction:
         start = text.find("{")
         end = text.rfind("}") + 1
         if start >= 0 and end > start:
-            data = json.loads(text[start:end])
+            try:
+                data = json.loads(text[start:end])
+            except json.JSONDecodeError:
+                return IncidentAction(
+                    action_type="investigate", target="system", command="overview",
+                )
         else:
             return IncidentAction(
-                action_type="investigate",
-                target="system",
-                command="overview",
+                action_type="investigate", target="system", command="overview",
             )
 
     return IncidentAction(
@@ -150,144 +195,108 @@ def _scripted_action(task_id: str, step: int) -> str:
     return task_script[idx]
 
 
-def run_single_task(
-    env: IncidentEnvironment,
-    task_id: str,
-    task_name: str,
-    client: Any | None = None,
-    model: str = "gpt-4o-mini",
-    max_agent_steps: int = 20,
-) -> dict:
-    """Run baseline agent on a single task. Returns grader result.
-
-    Prints [START]/[STEP]/[END] structured output for the hackathon validator.
-    """
-
-    obs = env.reset(task_id=task_id)
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    messages.append({"role": "user", "content": _observation_to_text(obs)})
-
-    # --- Structured output: [START] ---
-    print(f"[START] task={task_name}", flush=True)
-
-    step_count = 0
-    for step_num in range(max_agent_steps):
-        if obs.done:
-            break
-
-        if client is not None:
-            try:
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    temperature=0.0,
-                    max_tokens=256,
-                )
-                assistant_text = response.choices[0].message.content or ""
-            except Exception as e:
-                # Retry without optional params in case proxy doesn't support them
-                try:
-                    response = client.chat.completions.create(
-                        model=model,
-                        messages=messages,
-                    )
-                    assistant_text = response.choices[0].message.content or ""
-                except Exception as e2:
-                    print(f"[DEBUG] LLM call failed: {e2}", flush=True)
-                    assistant_text = _scripted_action(task_id, step_num)
-        else:
-            assistant_text = _scripted_action(task_id, step_num)
-
-        messages.append({"role": "assistant", "content": assistant_text})
-
-        try:
-            action = _parse_action(assistant_text)
-        except Exception:
-            action = IncidentAction(
-                action_type="investigate", target="system", command="overview"
-            )
-
-        obs = env.step(action)
-        messages.append({"role": "user", "content": _observation_to_text(obs)})
-        step_count = step_num + 1
-
-        # --- Structured output: [STEP] ---
-        reward = obs.reward if obs.reward is not None else 0.0
-        print(
-            f"[STEP] step={step_count} "
-            f"action={action.action_type}:{action.target}:{action.command} "
-            f"reward={reward} done={obs.done}",
-            flush=True,
-        )
-
-    result = env.compute_grader_score()
-    final_score = result.get("score", 0.0)
-
-    # --- Structured output: [END] ---
-    print(f"[END] task={task_name} score={final_score} steps={step_count}", flush=True)
-
-    return result
+def _action_to_str(action: IncidentAction) -> str:
+    """Format action as a compact string for [STEP] logging."""
+    return f"{action.action_type}('{action.target}','{action.command}')"
 
 
-# Task registry: task_id -> human-readable name
+# ---------------------------------------------------------------------------
+# Task registry
+# ---------------------------------------------------------------------------
 TASK_REGISTRY = {
-    "easy_oom": "Single Service OOM Crash",
-    "medium_db_pool": "Cascading DB Connection Pool Exhaustion",
-    "hard_canary": "Intermittent Canary Deployment Failure",
+    "easy_oom": "easy_oom",
+    "medium_db_pool": "medium_db_pool",
+    "hard_canary": "hard_canary",
 }
 
 
-def main():
-    """Run baseline inference against all 3 tasks.
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
-    Prints [START]/[STEP]/[END] structured output to stdout for the
-    hackathon validator, with flush=True on every print.
-    """
-    # Hackathon validator injects API_KEY and API_BASE_URL;
-    # fall back to OPENAI_API_KEY / OPENAI_BASE_URL for local testing.
-    api_key = os.environ.get("API_KEY") or os.environ.get("OPENAI_API_KEY")
-    base_url = os.environ.get("API_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
-    model = os.environ.get("MODEL_NAME", "gpt-4o-mini")
-
-    client = None
-    if api_key:
-        try:
-            from openai import OpenAI
-            kwargs: dict[str, str] = {"api_key": api_key}
-            if base_url:
-                kwargs["base_url"] = base_url
-            client = OpenAI(**kwargs)
-            print(f"Using model: {model}", flush=True)
-            if base_url:
-                print(f"Base URL: {base_url}", flush=True)
-        except ImportError:
-            print("openai package not installed, using scripted fallback", flush=True)
-
-    if not client:
-        print("No API key set, using scripted fallback agent", flush=True)
+def main() -> None:
+    """Run baseline inference against all 3 tasks."""
+    if not API_KEY:
+        print("[DEBUG] No API key found, using scripted fallback agent", flush=True)
+    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY or "sk-placeholder")
 
     env = IncidentEnvironment()
-    scores: dict[str, float] = {}
 
-    for task_id, task_name in TASK_REGISTRY.items():
-        result = run_single_task(
-            env, task_id, task_name, client=client, model=model,
-        )
-        scores[task_id] = result.get("score", 0.0)
+    for task_id in TASK_REGISTRY:
+        rewards: List[float] = []
+        steps_taken = 0
+        score = 0.0
+        success = False
 
-    avg = sum(scores.values()) / len(scores) if scores else 0.0
+        log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
 
-    print(f"\nBENCHMARK RESULTS", flush=True)
-    print(f"Model: {model if client else 'scripted-fallback'}", flush=True)
-    for task_id, score in scores.items():
-        print(f"  {task_id}: {score:.4f}", flush=True)
-    print(f"  Average: {avg:.4f}", flush=True)
+        try:
+            obs = env.reset(task_id=task_id)
+            messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+            messages.append({"role": "user", "content": _observation_to_text(obs)})
 
-    return {
-        "model": model if client else "scripted-fallback",
-        "scores": scores,
-        "average": round(avg, 4),
-    }
+            for step in range(1, MAX_STEPS + 1):
+                if obs.done:
+                    break
+
+                # Get action from LLM
+                try:
+                    response = client.chat.completions.create(
+                        model=MODEL_NAME,
+                        messages=messages,
+                        temperature=TEMPERATURE,
+                        max_tokens=MAX_TOKENS,
+                        stream=False,
+                    )
+                    assistant_text = (response.choices[0].message.content or "").strip()
+                except Exception as exc:
+                    print(f"[DEBUG] Model request failed: {exc}", flush=True)
+                    assistant_text = _scripted_action(task_id, step - 1)
+
+                if not assistant_text:
+                    assistant_text = _scripted_action(task_id, step - 1)
+
+                messages.append({"role": "assistant", "content": assistant_text})
+
+                try:
+                    action = _parse_action(assistant_text)
+                except Exception:
+                    action = IncidentAction(
+                        action_type="investigate", target="system", command="overview"
+                    )
+
+                obs = env.step(action)
+                messages.append({"role": "user", "content": _observation_to_text(obs)})
+
+                reward = obs.reward if obs.reward is not None else 0.0
+                done = obs.done
+                error = None
+
+                rewards.append(reward)
+                steps_taken = step
+
+                log_step(
+                    step=step,
+                    action=_action_to_str(action),
+                    reward=reward,
+                    done=done,
+                    error=error,
+                )
+
+                if done:
+                    break
+
+            # Compute final score from grader
+            result = env.compute_grader_score()
+            score = result.get("score", 0.0)
+            score = min(max(score, 0.0), 1.0)
+            success = score >= SUCCESS_SCORE_THRESHOLD
+
+        except Exception as exc:
+            print(f"[DEBUG] Task {task_id} failed: {exc}", flush=True)
+
+        finally:
+            log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
 
 
 if __name__ == "__main__":

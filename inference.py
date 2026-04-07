@@ -153,23 +153,24 @@ def _scripted_action(task_id: str, step: int) -> str:
 def run_single_task(
     env: IncidentEnvironment,
     task_id: str,
+    task_name: str,
     client: Any | None = None,
     model: str = "gpt-4o-mini",
     max_agent_steps: int = 20,
-    verbose: bool = True,
 ) -> dict:
-    """Run baseline agent on a single task. Returns grader result."""
+    """Run baseline agent on a single task. Returns grader result.
+
+    Prints [START]/[STEP]/[END] structured output for the hackathon validator.
+    """
 
     obs = env.reset(task_id=task_id)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.append({"role": "user", "content": _observation_to_text(obs)})
 
-    if verbose:
-        print(f"\n{'='*60}")
-        print(f"  TASK: {task_id}")
-        print(f"{'='*60}")
-        print(f"  Alert: {obs.alert_summary[:100]}...")
+    # --- Structured output: [START] ---
+    print(f"[START] task={task_name}", flush=True)
 
+    step_count = 0
     for step_num in range(max_agent_steps):
         if obs.done:
             break
@@ -196,19 +197,40 @@ def run_single_task(
 
         obs = env.step(action)
         messages.append({"role": "user", "content": _observation_to_text(obs)})
+        step_count = step_num + 1
 
-        if verbose:
-            print(f"  Step {step_num+1}: {action.action_type} {action.target} {action.command} -> reward={obs.reward}")
+        # --- Structured output: [STEP] ---
+        reward = obs.reward if obs.reward is not None else 0.0
+        print(
+            f"[STEP] step={step_count} "
+            f"action={action.action_type}:{action.target}:{action.command} "
+            f"reward={reward} done={obs.done}",
+            flush=True,
+        )
 
     result = env.compute_grader_score()
-    if verbose:
-        print(f"  FINAL SCORE: {result.get('score', 0.0)}")
+    final_score = result.get("score", 0.0)
+
+    # --- Structured output: [END] ---
+    print(f"[END] task={task_name} score={final_score} steps={step_count}", flush=True)
 
     return result
 
 
+# Task registry: task_id -> human-readable name
+TASK_REGISTRY = {
+    "easy_oom": "Single Service OOM Crash",
+    "medium_db_pool": "Cascading DB Connection Pool Exhaustion",
+    "hard_canary": "Intermittent Canary Deployment Failure",
+}
+
+
 def main():
-    """Run baseline inference against all 3 tasks."""
+    """Run baseline inference against all 3 tasks.
+
+    Prints [START]/[STEP]/[END] structured output to stdout for the
+    hackathon validator, with flush=True on every print.
+    """
     api_key = os.environ.get("OPENAI_API_KEY")
     base_url = os.environ.get("OPENAI_BASE_URL")
     model = os.environ.get("MODEL_NAME", "gpt-4o-mini")
@@ -217,39 +239,35 @@ def main():
     if api_key:
         try:
             from openai import OpenAI
-            kwargs = {"api_key": api_key}
+            kwargs: dict[str, str] = {"api_key": api_key}
             if base_url:
                 kwargs["base_url"] = base_url
             client = OpenAI(**kwargs)
-            print(f"Using model: {model}")
+            print(f"Using model: {model}", flush=True)
             if base_url:
-                print(f"Base URL: {base_url}")
+                print(f"Base URL: {base_url}", flush=True)
         except ImportError:
-            print("openai package not installed, using scripted fallback")
+            print("openai package not installed, using scripted fallback", flush=True)
 
     if not client:
-        print("No API key set, using scripted fallback agent")
+        print("No API key set, using scripted fallback agent", flush=True)
 
     env = IncidentEnvironment()
-    task_ids = ["easy_oom", "medium_db_pool", "hard_canary"]
-    scores = {}
+    scores: dict[str, float] = {}
 
-    for task_id in task_ids:
-        result = run_single_task(env, task_id, client=client, model=model)
+    for task_id, task_name in TASK_REGISTRY.items():
+        result = run_single_task(
+            env, task_id, task_name, client=client, model=model,
+        )
         scores[task_id] = result.get("score", 0.0)
 
     avg = sum(scores.values()) / len(scores) if scores else 0.0
 
-    print(f"\n{'='*60}")
-    print(f"  BENCHMARK RESULTS")
-    print(f"{'='*60}")
-    print(f"  Model: {model if client else 'scripted-fallback'}")
-    print(f"  {'Task':<20} {'Score':>8}")
-    print(f"  {'-'*28}")
+    print(f"\nBENCHMARK RESULTS", flush=True)
+    print(f"Model: {model if client else 'scripted-fallback'}", flush=True)
     for task_id, score in scores.items():
-        print(f"  {task_id:<20} {score:>8.4f}")
-    print(f"  {'-'*28}")
-    print(f"  {'Average':<20} {avg:>8.4f}")
+        print(f"  {task_id}: {score:.4f}", flush=True)
+    print(f"  Average: {avg:.4f}", flush=True)
 
     return {
         "model": model if client else "scripted-fallback",

@@ -176,13 +176,25 @@ def run_single_task(
             break
 
         if client is not None:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0.0,
-                max_tokens=256,
-            )
-            assistant_text = response.choices[0].message.content
+            try:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=0.0,
+                    max_tokens=256,
+                )
+                assistant_text = response.choices[0].message.content or ""
+            except Exception as e:
+                # Retry without optional params in case proxy doesn't support them
+                try:
+                    response = client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                    )
+                    assistant_text = response.choices[0].message.content or ""
+                except Exception as e2:
+                    print(f"[DEBUG] LLM call failed: {e2}", flush=True)
+                    assistant_text = _scripted_action(task_id, step_num)
         else:
             assistant_text = _scripted_action(task_id, step_num)
 

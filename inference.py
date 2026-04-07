@@ -231,8 +231,10 @@ def main():
     Prints [START]/[STEP]/[END] structured output to stdout for the
     hackathon validator, with flush=True on every print.
     """
-    api_key = os.environ.get("OPENAI_API_KEY")
-    base_url = os.environ.get("OPENAI_BASE_URL")
+    # Hackathon validator injects API_KEY and API_BASE_URL;
+    # fall back to OPENAI_API_KEY / OPENAI_BASE_URL for local testing.
+    api_key = os.environ.get("API_KEY") or os.environ.get("OPENAI_API_KEY")
+    base_url = os.environ.get("API_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
     model = os.environ.get("MODEL_NAME", "gpt-4o-mini")
 
     client = None
